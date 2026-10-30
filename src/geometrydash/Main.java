@@ -1,29 +1,36 @@
 package geometrydash;
 
-import javax.swing.SwingUtilities;
+import geometrydash.controller.GameController;
+import geometrydash.model.GameModel;
+import geometrydash.view.GamePanel;
 import geometrydash.view.GameWindow;
 
+import javax.swing.SwingUtilities;
+
 /**
- * Ponto de entrada (Entry Point) da aplicação Geometry Dash POO.
+ * Ponto de entrada da aplicação.
  * 
- * Conceitos de Java e Arquitetura:
- * 1. public static void main:
- *    - public: acessível pela Máquina Virtual Java (JVM) de qualquer lugar.
- *    - static: método de classe que pode ser invocado sem instanciar a classe Main.
- *    - void: não retorna nenhum valor após o término da execução.
- * 
- * 2. SwingUtilities.invokeLater:
- *    - O Swing não é thread-safe. Todas as operações de criação e atualização de
- *      interfaces gráficas devem ocorrer na "Event Dispatch Thread" (EDT).
- *    - O invokeLater enfileira a tarefa de criação da janela na EDT, prevenindo
- *      problemas de concorrência e congelamento de interface.
+ * Orquestração MVC:
+ * 1. Instancia o Model (estado e regras puras).
+ * 2. Instancia a View (GamePanel para Graphics2D e GameWindow para JFrame).
+ * 3. Instancia o Controller (GameController interligando Model, View e eventos).
+ * 4. Exibe a janela na Event Dispatch Thread (EDT).
  */
 public class Main {
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
-            GameWindow janela = new GameWindow();
+            // 1. Model: Estado puro do jogo
+            GameModel model = new GameModel();
+
+            // 2. View: Painel de renderização 2D
+            GamePanel panel = new GamePanel(model);
+
+            // 3. Controller: Coordena eventos de entrada e regras
+            new GameController(model, panel);
+
+            // 4. Janela: Agrega o painel e exibe a interface
+            GameWindow janela = new GameWindow(panel);
             janela.exibir();
         });
     }
 }
-
