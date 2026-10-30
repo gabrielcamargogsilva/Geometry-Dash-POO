@@ -405,8 +405,9 @@ O estudante já escolheu Java, Swing, `Graphics2D`, execução local e MVC. Não
   - Concorrência de interface gráfica com Swing EDT.
 
 ### Etapa 2 (30/10/2026) — Fundação MVC e Área de Desenho Graphics2D
-- **Branch:** `feat/mvc-painel-graphics2d-e-estados`
+- **Branch:** `feat/mvc-painel-graphics2d-e-estados` (integrada via merge em `develop`)
 - **Ações:**
+  - **CI:** Adicionado workflow de detecção de segredos com Gitleaks em `.github/workflows/gitleaks.yml`.
   - **Model:** Criado `GameState` (enum com `MENU`, `JOGANDO`, `PAUSADO`, `DERROTA`, `VITORIA`) e `GameModel` contendo a regra de transição de estado pura (zero dependências de Swing/AWT).
   - **View:** Criado `GamePanel` herdando de `JPanel` com área interna de 800x600 e renderização especializada via `Graphics2D` com anti-aliasing. Atualizado `GameWindow` com `pack()` para preservar a área útil exata.
   - **Controller:** Criado `InputController` estendendo `KeyAdapter` (captura de Espaço, Esc e M) e `GameController` orquestrando Model, View e eventos.
