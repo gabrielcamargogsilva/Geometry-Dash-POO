@@ -25,6 +25,7 @@ Ajudar a construir um jogo 2D desktop inspirado em Geometry Dash, com identidade
 - Não repita perguntas já respondidas neste documento.
 - Se um detalhe não bloqueia o trabalho, escolha um padrão simples e reversível, explique-o e registre-o.
 - Não faça operações destrutivas de Git nem sobrescreva alterações do estudante sem autorização.
+- Faça a construção em branches separadas, com commits claros e frequentes. Evite merges complexos.
 
 O estudante prefere explicações progressivas, claras e diretas, adequadas para anotar e estudar. O objetivo é aprender a construir e compreender o código, não apenas copiar soluções.
 
@@ -271,11 +272,17 @@ Organizar recursos separados do código, em pastas por tipo:
 
 Elementos geométricos podem ser desenhados com `Graphics2D`. Formatos definitivos e assets ainda não foram escolhidos.
 
-## 11. Decisões em aberto
+## 11. Decisões técnicas e status
 
-Não invente respostas nem bloqueie o começo por detalhes que podem receber defaults reversíveis:
-- Estrutura real do projeto, pacote-base, JDK e configuração de build.
-- Resolução exata da janela.
+### Decisões já definidas e implementadas:
+- **JDK:** OpenJDK 17 (Temurin 17.0.18+8).
+- **Compilação e execução:** Padrão VS Code Java / `javac` com saída em `bin/`.
+- **Pacote-base:** `geometrydash` (com subpacote inicial `geometrydash.view`).
+- **Resolução da janela:** 800x600 pixels, não redimensionável (`setResizable(false)`).
+- **Abordagem de Janela:** Composição com `JFrame` encapsulado na classe `GameWindow`.
+- **Versionamento:** `.gitignore` configurado para ignorar `bin/` e `*.class`.
+
+### Decisões em aberto (a definir conforme necessidade):
 - Dimensões do personagem, chão e área útil.
 - Valores numéricos de velocidade inicial/máxima e aceleração.
 - Gravidade e velocidade inicial do salto.
@@ -291,21 +298,21 @@ Não invente respostas nem bloqueie o começo por detalhes que podem receber def
 
 Ajuste após inspecionar o repositório; não duplique o que já existir.
 
-0. Inspecionar repositório, README, JDK, IDE, build, arquivos e código existente.
-1. Garantir aplicação Swing, ponto de entrada, janela fixa e área de desenho.
-2. Estabelecer fundação MVC com estado mínimo, View e Controller.
-3. Implementar ciclo de atualização, delta time limitado e separação atualização/renderização.
-4. Desenhar fundo, chão e personagem.
-5. Implementar movimento automático do cenário.
-6. Implementar salto com gravidade, aterrissagem e rotação visual.
-7. Adicionar obstáculos e colisões, com testes.
-8. Carregar fase via JSON e validar dados.
-9. Implementar estados/telas: menu, dica, pausa, derrota, vitória e transições.
-10. Implementar progresso e dificuldade progressiva.
-11. Adicionar áudio.
-12. Adicionar personalização e persistência.
-13. Testar regressões, documentar e preparar apresentação.
-14. Avaliar empacotamento JAR posteriormente.
+- [x] **Etapa 0:** Inspecionar repositório, README, JDK, IDE, build, arquivos e código existente. *(Concluído)*
+- [x] **Etapa 1:** Ponto de entrada (`Main.java`), janela fixa Swing (`GameWindow.java`) e `.gitignore`. *(Concluído)*
+- [x] **Etapa 2:** Estabelecer fundação MVC com área de desenho (`Graphics2D` via `GamePanel`), estado mínimo do Model e Controller. *(Concluído)*
+- [ ] **Etapa 3:** Implementar ciclo de atualização, delta time limitado e separação atualização/renderização.
+- [ ] **Etapa 4:** Desenhar fundo, chão e personagem.
+- [ ] **Etapa 5:** Implementar movimento automático do cenário.
+- [ ] **Etapa 6:** Implementar salto com gravidade, aterrissagem e rotação visual.
+- [ ] **Etapa 7:** Adicionar obstáculos e colisões, com testes.
+- [ ] **Etapa 8:** Carregar fase via JSON e validar dados.
+- [ ] **Etapa 9:** Implementar estados/telas: menu, dica, pausa, derrota, vitória e transições.
+- [ ] **Etapa 10:** Implementar progresso e dificuldade progressiva.
+- [ ] **Etapa 11:** Adicionar áudio.
+- [ ] **Etapa 12:** Adicionar personalização e persistência.
+- [ ] **Etapa 13:** Testar regressões, documentar e preparar apresentação.
+- [ ] **Etapa 14:** Avaliar empacotamento JAR posteriormente.
 
 ## 13. Testes
 
@@ -333,6 +340,11 @@ Testes manuais:
 Evitar testes frágeis com sleeps longos. Quando possível, fornecer delta time explicitamente às funções para permitir testes determinísticos.
 
 ## 14. Git
+
+### Estratégia de Branches
+- Branch base de desenvolvimento: `develop`.
+- Cada etapa deve possuir uma branch específica criada a partir de `develop` com nome descritivo da funcionalidade desenvolvida (ex.: `feat/mvc-painel-graphics2d-e-estados`, `feat/game-loop-e-delta-time`), sem incluir o termo "etapa X" no nome da branch.
+- Os commits e testes da funcionalidade são realizados em sua respectiva branch antes de qualquer integração.
 
 Preferir commits pequenos e frequentes:
 - `chore: configura estrutura inicial MVC`
@@ -372,3 +384,38 @@ Ao propor uma classe, explicar sua responsabilidade, camada MVC, dependências e
 O estudante já escolheu Java, Swing, `Graphics2D`, execução local e MVC. Não pergunte novamente essas decisões.
 
 **Prioridade central:** entregar um jogo funcional, organizado e testável, garantindo que o estudante entenda e consiga defender tecnicamente cada parte.
+
+## 17. Registro de Progresso das Etapas
+
+### Etapa 0 (30/10/2026) — Inspeção Inicial
+- Inspeção de ambiente concluída: OpenJDK 17.0.18, VS Code Java Project, sem dependências externas.
+- Análise de estado e alinhamento das diretrizes de arquitetura MVC realizado.
+
+### Etapa 1 (30/10/2026) — Ponto de Entrada e Janela Principal Swing
+- **Ações:**
+  - Configurado pacote base `geometrydash`.
+  - Criado `geometrydash.Main` na Event Dispatch Thread (`SwingUtilities.invokeLater`).
+  - Criado `geometrydash.view.GameWindow` encapsulando `JFrame` (800x600, centralizado, não redimensionável).
+  - Criado `.gitignore` para ignorar diretório de build `bin/`.
+  - Removido arquivo temporário `src/App.java`.
+- **Conceitos de POO e Java abordados:**
+  - Organização por pacotes (`package`).
+  - Modificadores de acesso e métodos estáticos (`public static void main`).
+  - Encapsulamento e Composição vs. Herança (GameWindow contém um JFrame).
+  - Concorrência de interface gráfica com Swing EDT.
+
+### Etapa 2 (30/10/2026) — Fundação MVC e Área de Desenho Graphics2D
+- **Branch:** `feat/mvc-painel-graphics2d-e-estados`
+- **Ações:**
+  - **Model:** Criado `GameState` (enum com `MENU`, `JOGANDO`, `PAUSADO`, `DERROTA`, `VITORIA`) e `GameModel` contendo a regra de transição de estado pura (zero dependências de Swing/AWT).
+  - **View:** Criado `GamePanel` herdando de `JPanel` com área interna de 800x600 e renderização especializada via `Graphics2D` com anti-aliasing. Atualizado `GameWindow` com `pack()` para preservar a área útil exata.
+  - **Controller:** Criado `InputController` estendendo `KeyAdapter` (captura de Espaço, Esc e M) e `GameController` orquestrando Model, View e eventos.
+  - **Testes Unitários:** Criado `GameModelTest` em `test/` validando o Model 100% sem interface gráfica.
+- **Conceitos de POO e Java abordados:**
+  - Tipos enumerados fortemente tipados (`enum`).
+  - Herança e Polimorfismo com Sobrescrita de métodos (`@Override` em `paintComponent`).
+  - Padrão Adapter (`KeyAdapter` do Java AWT para tratar eventos sem declarar métodos desnecessários).
+  - Desacoplamento arquitetural (Model isolado de View; View apenas reflete o Model; Controller intermedia).
+
+
+
