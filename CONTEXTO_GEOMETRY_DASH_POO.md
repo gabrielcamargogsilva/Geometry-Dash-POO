@@ -21,6 +21,7 @@ Ajudar a construir um jogo 2D desktop inspirado em Geometry Dash, com identidade
 - Prefira Java padrão e Swing. Justifique qualquer dependência externa.
 - Teste cada etapa e explique o resultado esperado.
 - Recomende commits Git pequenos após unidades funcionais/testes concluídos.
+- Quando uma etapa tiver mudanças separáveis, organize vários commits granulares e coerentes (por exemplo, lógica/testes, View/testes e documentação).
 - Não trate decisões ainda abertas como definitivas.
 - Não repita perguntas já respondidas neste documento.
 - Se um detalhe não bloqueia o trabalho, escolha um padrão simples e reversível, explique-o e registre-o.
@@ -159,7 +160,7 @@ Menus controlados pelo mouse. Ao clicar em Jogar, a fase começa imediatamente, 
 - Pulo apenas no chão; comando no ar ignorado.
 - Sem pulo duplo, pulo variável ou buffer de pulo.
 - Física por velocidade vertical inicial e gravidade: sobe desacelerando, chega ao ápice e desce acelerando.
-- Quadrado gira visualmente no ar e retorna à orientação normal ao aterrissar.
+- Em cada salto, o quadrado gira 90 graus no sentido horário e aterrissa nessa orientação. Saltos sucessivos continuam a rotação: em pé, lado direito, de cabeça para baixo, lado esquerdo e novamente em pé após quatro saltos.
 - Rotação não altera hitbox.
 - Aterrissagem imediata, sem animação extra.
 - Sem partículas ou rastros no salto.
@@ -283,9 +284,9 @@ Elementos geométricos podem ser desenhados com `Graphics2D`. Formatos definitiv
 - **Versionamento:** `.gitignore` configurado para ignorar `bin/` e `*.class`.
 
 ### Decisões em aberto (a definir conforme necessidade):
-- Dimensões do personagem, chão e área útil.
-- Valores numéricos de velocidade inicial/máxima e aceleração.
-- Gravidade e velocidade inicial do salto.
+- Dimensões finais do personagem e do chão (baseline visual definido na etapa 4: personagem 40x40 em x=120, chão em y=480; validar com a física).
+- Valores finais de velocidade e aceleração do percurso (a etapa 5 usa 180 px/s como velocidade inicial fixa e reversível do cenário).
+- Valores finais da física do salto (baseline da etapa 6: gravidade 1800 px/s² e velocidade inicial -600 px/s; validar/calibrar com obstáculos).
 - Duração da dica.
 - Esquema JSON e biblioteca/estratégia de leitura.
 - Formato de persistência.
@@ -301,10 +302,10 @@ Ajuste após inspecionar o repositório; não duplique o que já existir.
 - [x] **Etapa 0:** Inspecionar repositório, README, JDK, IDE, build, arquivos e código existente. *(Concluído)*
 - [x] **Etapa 1:** Ponto de entrada (`Main.java`), janela fixa Swing (`GameWindow.java`) e `.gitignore`. *(Concluído)*
 - [x] **Etapa 2:** Estabelecer fundação MVC com área de desenho (`Graphics2D` via `GamePanel`), estado mínimo do Model e Controller. *(Concluído)*
-- [ ] **Etapa 3:** Implementar ciclo de atualização, delta time limitado e separação atualização/renderização.
-- [ ] **Etapa 4:** Desenhar fundo, chão e personagem.
-- [ ] **Etapa 5:** Implementar movimento automático do cenário.
-- [ ] **Etapa 6:** Implementar salto com gravidade, aterrissagem e rotação visual.
+- [x] **Etapa 3:** Implementar ciclo de atualização, delta time limitado e separação atualização/renderização. *(Concluído)*
+- [x] **Etapa 4:** Desenhar fundo, chão e personagem. *(Concluída)*
+- [x] **Etapa 5:** Implementar movimento automático do cenário. *(Concluída)*
+- [x] **Etapa 6:** Implementar salto com gravidade, aterrissagem e rotação visual. *(Concluída)*
 - [ ] **Etapa 7:** Adicionar obstáculos e colisões, com testes.
 - [ ] **Etapa 8:** Carregar fase via JSON e validar dados.
 - [ ] **Etapa 9:** Implementar estados/telas: menu, dica, pausa, derrota, vitória e transições.
@@ -341,8 +342,10 @@ Evitar testes frágeis com sleeps longos. Quando possível, fornecer delta time 
 
 ## 14. Git
 
-### Estratégia de Branches
-- Branch base de desenvolvimento: `develop`.
+### Estratégia de Branches (Fluxo Git Obrigatório: branch -> develop -> main)
+- **Fluxo de integração estrito:** `branch de funcionalidade` -> `develop` -> `main`.
+- **Branch base de trabalho:** `develop` (todas as branches de etapas partem dela).
+- **Branch estável / produção:** `main` (recebe merges apenas vindos da `develop`).
 - Cada etapa deve possuir uma branch específica criada a partir de `develop` com nome descritivo da funcionalidade desenvolvida (ex.: `feat/mvc-painel-graphics2d-e-estados`, `feat/game-loop-e-delta-time`), sem incluir o termo "etapa X" no nome da branch.
 - Os commits e testes da funcionalidade são realizados em sua respectiva branch antes de qualquer integração.
 
@@ -418,5 +421,58 @@ O estudante já escolheu Java, Swing, `Graphics2D`, execução local e MVC. Não
   - Padrão Adapter (`KeyAdapter` do Java AWT para tratar eventos sem declarar métodos desnecessários).
   - Desacoplamento arquitetural (Model isolado de View; View apenas reflete o Model; Controller intermedia).
 
+### Etapa 3 (30/10/2026) — Ciclo de Jogo (Game Loop) e Delta Time
+- **Branch:** `feat/game-loop-e-delta-time`
+- **Ações:**
+  - **Controller:** Criado `GameLoop` implementando `Runnable` com taxa alvo de 60 FPS, medição de delta time com `System.nanoTime()` e descarte de atrasos bruscos via `limitarDeltaTime` (teto de 0.05s).
+  - **Model:** Adicionado `tempoDecorrido` e método `atualizar(double deltaTime)` no `GameModel`. O tempo só avança durante o estado `JOGANDO` e congela durante `PAUSADO` ou `MENU`.
+  - **View:** `GamePanel` atualizado para exibir em tempo real a contagem de tempo da tentativa durante a partida e o tempo congelado na tela de pausa.
+  - **Testes Unitários:** Adicionadas suítes completas de teste para avanço temporal determinístico no `GameModelTest` e validação do limitador de delta time no `GameLoopTest`.
+- **Conceitos de POO e Java abordados:**
+  - Concorrência básica em Java com `Runnable` e `Thread`.
+  - Visibilidade de memória entre threads com a palavra-chave `volatile`.
+  - Separação entre simulação lógica (`model.atualizar`) e renderização gráfica (`SwingUtilities.invokeLater(view::repaint)`).
+  - Métodos puros e testabilidade determinística com Delta Time injetado.
 
+### Etapa 4 (30/10/2026) — Fundo, Chão e Personagem
+- **Branch:** `feat/fundo-chao-personagem`
+- **Ações:**
+  - **View:** `GamePanel` agora desenha fundo em gradiente, linhas geométricas discretas, chão quadriculado e uma faixa luminosa que marca o piso.
+  - **View:** Desenhado um personagem quadrado estático de 40x40 pixels, com cor própria, contorno e expressão geométrica. Ele fica na posição horizontal x=120, apoiado no chão em y=480.
+  - **Testes:** Criado `GamePanelTest`, que renderiza o painel em um `BufferedImage` e verifica as cores do fundo, do chão e do personagem sem abrir uma janela.
+- **Conceitos de Java e POO abordados:**
+  - `Graphics2D` e `GradientPaint` para composição visual.
+  - Separação entre apresentação e simulação: a View desenha o personagem sem alterar posição, física ou tempo no Model.
+  - Testes headless de interface Swing usando uma imagem em memória.
+- **Limite desta etapa:** O cenário e o personagem permanecem estáticos; o movimento automático será tratado na etapa 5 e o salto na etapa 6.
 
+### Etapa 5 (30/10/2026) — Movimento Automático do Cenário
+- **Branch:** `feat/movimento-automatico-cenario`
+- **Ações:**
+  - **Model:** `GameModel.atualizar(deltaTime)` agora avança o deslocamento horizontal do cenário a 180 px/s somente durante `JOGANDO`.
+  - **Model:** O deslocamento é mantido dentro de um ciclo de 40 pixels, correspondente à repetição da grade do chão, e reinicia ao iniciar uma nova partida ou voltar ao menu.
+  - **View:** As linhas verticais da grade do chão são desenhadas a partir do deslocamento atual do Model, criando movimento contínuo para a esquerda sem mover o personagem.
+  - **Testes:** `GameModelTest` cobre velocidade, pausa, reinício e limite do ciclo; `GamePanelTest` verifica que a grade se desloca entre quadros.
+- **Decisão reversível:** A velocidade visual inicial é 180 px/s; poderá ser ajustada quando movimento, obstáculos e dificuldade forem calibrados em conjunto.
+- **Conceitos de Java e POO abordados:**
+  - Integração de velocidade por tempo: distância = velocidade × delta time.
+  - Model calcula o estado do movimento; View apenas o representa durante a pintura.
+  - Deslocamento modular mantém a repetição visual da grade sem crescimento numérico contínuo.
+- **Limite desta etapa:** Ainda não há obstáculos; serão adicionados com posições e colisões em etapas posteriores.
+
+### Etapa 6 (30/10/2026) — Salto, Gravidade e Rotação Visual
+- **Branch:** `feat/salto-gravidade-rotacao`
+- **Ações:**
+  - **Model:** Implementada a física vertical com gravidade de 1800 px/s² e velocidade inicial de -600 px/s. O salto atinge cerca de 100 pixels de altura e dura aproximadamente 0,67 segundo.
+  - **Model:** O pulo só é aceito durante `JOGANDO` e quando o personagem está no chão. A posição é integrada pelo delta time; ao cruzar o piso, a posição é ajustada para o chão e a velocidade vertical zera.
+  - **Model:** A pausa congela posição e rotação no ar; cada salto adiciona 90 graus à orientação e aterrissa nessa nova posição. A rotação continua do ponto em que parou no salto anterior. Iniciar nova partida ou voltar ao menu restaura a posição, velocidade e orientação iniciais.
+  - **Controller:** Espaço inicia a partida no menu e pula durante o jogo. Clique também pula durante o jogo; cliques no menu e comandos de pulo no ar são ignorados.
+  - **View:** O personagem acompanha a posição vertical do Model e gira 90 graus para a direita por salto. A transformação afeta apenas o desenho, não as regras ou a posição horizontal.
+  - **Concorrência:** Métodos de acesso e atualização do Model são sincronizados para serializar atualizações do GameLoop e comandos recebidos pela interface Swing.
+  - **Testes:** `GameModelTest` cobre início do salto, gravidade, ápice, pausa, aterrissagem e sequência acumulada em quatro saltos; `InputControllerTest` verifica teclado e mouse; `GamePanelTest` verifica elevação, rotação e aterrissagem tombada.
+- **Conceitos de Java e POO abordados:**
+  - Cinemática vertical por aceleração e delta time.
+  - Separação entre estado físico do Model e transformação visual da View.
+  - Sincronização de métodos para coordenar entrada na EDT e atualização do GameLoop.
+- **Limite desta etapa:** A hitbox ainda não foi criada; a rotação do desenho não influencia colisões. Obstáculos e colisões serão tratados nas etapas seguintes.
+- **Ajuste de comportamento:** A rotação é distribuída por saltos sucessivos, não dentro de um único salto. Cada salto gira mais 90 graus e aterrissa nessa orientação; depois de quatro saltos, a orientação retorna a em pé.
