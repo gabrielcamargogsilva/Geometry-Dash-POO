@@ -34,31 +34,25 @@ public class GamePanel extends JPanel {
     }
 
     private void configurarPainel() {
-        // Define o tamanho ideal da área interna útil de jogo
         setPreferredSize(new Dimension(LARGURA, ALTURA));
-        setBackground(new Color(24, 24, 32)); // Fundo escuro estilizado
-        setFocusable(true); // Permite ao painel receber foco para eventos de teclado
+        setBackground(new Color(24, 24, 32));
+        setFocusable(true);
     }
 
     /**
-     * Ciclo de pintura do Swing.
+     * Ciclo de pintura do Swing acionado pelo GameLoop via repaint().
      * 
-     * Regra importante:
-     * Nunca execute lógica de física ou alteração de estado dentro do método de pintura!
-     * O método de pintura deve apenas representar o estado atual fornecido pelo Model.
+     * Regra arquitetural importante:
+     * A View apenas representa visualmente os dados do Model. Nenhuma física,
+     * colisão ou avanço de tempo ocorre dentro deste método.
      */
     @Override
     protected void paintComponent(Graphics g) {
-        // super.paintComponent limpa o fundo antes de um novo redesenho (evita artefatos visuais)
         super.paintComponent(g);
 
-        // Converte o Graphics básico para Graphics2D (recursos 2D avançados)
         Graphics2D g2d = (Graphics2D) g;
-
-        // Ativa o Anti-aliasing para traços geométricos mais suaves e nítidos
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-        // Renderiza elementos visuais baseando-se no estado atual do Model
         desenharCenarioBase(g2d);
         desenharInterfacePorEstado(g2d);
     }
@@ -89,24 +83,31 @@ public class GamePanel extends JPanel {
 
             case JOGANDO:
                 g2d.setColor(new Color(100, 255, 100));
-                g2d.drawString("ESTADO: JOGANDO", 300, 200);
+                g2d.drawString("ESTADO: JOGANDO", 300, 190);
 
-                g2d.setFont(new Font("Segoe UI", Font.PLAIN, 15));
+                g2d.setFont(new Font("Segoe UI", Font.PLAIN, 16));
+                g2d.setColor(new Color(200, 240, 255));
+                String textoTempo = String.format("Tempo de Partida: %.2f s", model.getTempoDecorrido());
+                g2d.drawString(textoTempo, 290, 230);
+
+                g2d.setFont(new Font("Segoe UI", Font.PLAIN, 14));
                 g2d.setColor(Color.LIGHT_GRAY);
-                g2d.drawString("Pressione [ESC] para Pausar", 310, 240);
+                g2d.drawString("Pressione [ESC] para Pausar", 310, 270);
                 break;
 
             case PAUSADO:
-                // Efeito de escurecimento translúcido para a pausa
                 g2d.setColor(new Color(0, 0, 0, 170));
                 g2d.fillRect(0, 0, LARGURA, ALTURA);
 
                 g2d.setColor(new Color(255, 200, 0));
-                g2d.drawString("JOGO PAUSADO", 320, 260);
+                g2d.drawString("JOGO PAUSADO", 320, 240);
 
                 g2d.setFont(new Font("Segoe UI", Font.PLAIN, 16));
                 g2d.setColor(Color.WHITE);
-                g2d.drawString("Pressione [ESC] para Retomar ou [M] para Voltar ao Menu", 200, 310);
+                g2d.drawString(String.format("Tempo congelado: %.2f s", model.getTempoDecorrido()), 310, 280);
+
+                g2d.setFont(new Font("Segoe UI", Font.PLAIN, 15));
+                g2d.drawString("Pressione [ESC] para Retomar ou [M] para Voltar ao Menu", 200, 330);
                 break;
 
             default:
@@ -114,4 +115,3 @@ public class GamePanel extends JPanel {
         }
     }
 }
-
