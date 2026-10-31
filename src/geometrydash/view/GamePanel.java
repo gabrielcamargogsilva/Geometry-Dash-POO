@@ -82,8 +82,10 @@ public class GamePanel extends JPanel {
         g2d.fillRect(0, POSICAO_CHAO_Y, LARGURA, ALTURA - POSICAO_CHAO_Y);
 
         g2d.setColor(new Color(75, 93, 125, 90));
-        for (int x = 0; x < LARGURA; x += 40) {
-            g2d.drawLine(x, POSICAO_CHAO_Y, x, ALTURA);
+        double deslocamentoCenario = model.getDeslocamentoCenario();
+        for (double x = -deslocamentoCenario; x < LARGURA; x += GameModel.TAMANHO_CICLO_CENARIO) {
+            int posicaoX = (int) Math.round(x);
+            g2d.drawLine(posicaoX, POSICAO_CHAO_Y, posicaoX, ALTURA);
         }
         for (int y = POSICAO_CHAO_Y + 40; y < ALTURA; y += 40) {
             g2d.drawLine(0, y, LARGURA, y);
