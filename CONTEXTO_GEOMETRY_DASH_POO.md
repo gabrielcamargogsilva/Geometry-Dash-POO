@@ -160,7 +160,7 @@ Menus controlados pelo mouse. Ao clicar em Jogar, a fase começa imediatamente, 
 - Pulo apenas no chão; comando no ar ignorado.
 - Sem pulo duplo, pulo variável ou buffer de pulo.
 - Física por velocidade vertical inicial e gravidade: sobe desacelerando, chega ao ápice e desce acelerando.
-- Quadrado tomba visualmente uma vez para a direita durante o salto, atingindo 90 graus, e permanece tombado ao aterrissar. Um novo pulo começa na orientação normal.
+- Quadrado gira continuamente uma volta completa durante o salto: começa em pé, fica de lado, de cabeça para baixo, de lado para o outro lado e volta a ficar em pé ao aterrissar.
 - Rotação não altera hitbox.
 - Aterrissagem imediata, sem animação extra.
 - Sem partículas ou rastros no salto.
@@ -465,14 +465,14 @@ O estudante já escolheu Java, Swing, `Graphics2D`, execução local e MVC. Não
 - **Ações:**
   - **Model:** Implementada a física vertical com gravidade de 1800 px/s² e velocidade inicial de -600 px/s. O salto atinge cerca de 100 pixels de altura e dura aproximadamente 0,67 segundo.
   - **Model:** O pulo só é aceito durante `JOGANDO` e quando o personagem está no chão. A posição é integrada pelo delta time; ao cruzar o piso, a posição é ajustada para o chão e a velocidade vertical zera.
-  - **Model:** A pausa congela posição e rotação no ar; ao aterrissar, a orientação fica tombada 90 graus para a direita até um novo pulo. Iniciar nova partida ou voltar ao menu restaura a posição, velocidade e orientação iniciais.
+  - **Model:** A pausa congela posição e rotação no ar; ao longo do salto, o personagem gira uma volta completa e aterrissa novamente em pé. Iniciar nova partida ou voltar ao menu restaura a posição, velocidade e orientação iniciais.
   - **Controller:** Espaço inicia a partida no menu e pula durante o jogo. Clique também pula durante o jogo; cliques no menu e comandos de pulo no ar são ignorados.
-  - **View:** O personagem acompanha a posição vertical do Model e tomba uma única vez, até 90 graus para a direita, durante o salto. A transformação afeta apenas o desenho, não as regras ou a posição horizontal.
+  - **View:** O personagem acompanha a posição vertical do Model e gira uma volta completa durante o salto. A transformação afeta apenas o desenho, não as regras ou a posição horizontal.
   - **Concorrência:** Métodos de acesso e atualização do Model são sincronizados para serializar atualizações do GameLoop e comandos recebidos pela interface Swing.
-  - **Testes:** `GameModelTest` cobre início do salto, gravidade, ápice, pausa, aterrissagem, rotação e bloqueio de pulo duplo; `InputControllerTest` verifica teclado e mouse; `GamePanelTest` verifica elevação e rotação renderizadas.
+  - **Testes:** `GameModelTest` cobre início do salto, gravidade, ápice, pausa, aterrissagem, os quatro quartos da rotação e bloqueio de pulo duplo; `InputControllerTest` verifica teclado e mouse; `GamePanelTest` verifica elevação, rotação e aterrissagem em pé.
 - **Conceitos de Java e POO abordados:**
   - Cinemática vertical por aceleração e delta time.
   - Separação entre estado físico do Model e transformação visual da View.
   - Sincronização de métodos para coordenar entrada na EDT e atualização do GameLoop.
 - **Limite desta etapa:** A hitbox ainda não foi criada; a rotação do desenho não influencia colisões. Obstáculos e colisões serão tratados nas etapas seguintes.
-- **Ajuste de comportamento:** Após validação visual, a animação foi alterada de uma volta completa para um único tombamento de 90 graus para a direita. O personagem permanece tombado ao aterrissar e volta à orientação normal ao iniciar o próximo pulo.
+- **Ajuste de comportamento:** A rotação segue uma volta completa e contínua no sentido horário durante o salto: 90 graus (de lado), 180 graus (de cabeça para baixo), 270 graus (de lado para o outro lado) e 360 graus (em pé novamente na aterrissagem).
