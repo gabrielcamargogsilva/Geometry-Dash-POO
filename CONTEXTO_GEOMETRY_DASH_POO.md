@@ -301,7 +301,7 @@ Ajuste após inspecionar o repositório; não duplique o que já existir.
 - [x] **Etapa 0:** Inspecionar repositório, README, JDK, IDE, build, arquivos e código existente. *(Concluído)*
 - [x] **Etapa 1:** Ponto de entrada (`Main.java`), janela fixa Swing (`GameWindow.java`) e `.gitignore`. *(Concluído)*
 - [x] **Etapa 2:** Estabelecer fundação MVC com área de desenho (`Graphics2D` via `GamePanel`), estado mínimo do Model e Controller. *(Concluído)*
-- [ ] **Etapa 3:** Implementar ciclo de atualização, delta time limitado e separação atualização/renderização.
+- [x] **Etapa 3:** Implementar ciclo de atualização, delta time limitado e separação atualização/renderização. *(Concluído)*
 - [ ] **Etapa 4:** Desenhar fundo, chão e personagem.
 - [ ] **Etapa 5:** Implementar movimento automático do cenário.
 - [ ] **Etapa 6:** Implementar salto com gravidade, aterrissagem e rotação visual.
@@ -341,8 +341,10 @@ Evitar testes frágeis com sleeps longos. Quando possível, fornecer delta time 
 
 ## 14. Git
 
-### Estratégia de Branches
-- Branch base de desenvolvimento: `develop`.
+### Estratégia de Branches (Fluxo Git Obrigatório: branch -> develop -> main)
+- **Fluxo de integração estrito:** `branch de funcionalidade` -> `develop` -> `main`.
+- **Branch base de trabalho:** `develop` (todas as branches de etapas partem dela).
+- **Branch estável / produção:** `main` (recebe merges apenas vindos da `develop`).
 - Cada etapa deve possuir uma branch específica criada a partir de `develop` com nome descritivo da funcionalidade desenvolvida (ex.: `feat/mvc-painel-graphics2d-e-estados`, `feat/game-loop-e-delta-time`), sem incluir o termo "etapa X" no nome da branch.
 - Os commits e testes da funcionalidade são realizados em sua respectiva branch antes de qualquer integração.
 
@@ -417,6 +419,19 @@ O estudante já escolheu Java, Swing, `Graphics2D`, execução local e MVC. Não
   - Herança e Polimorfismo com Sobrescrita de métodos (`@Override` em `paintComponent`).
   - Padrão Adapter (`KeyAdapter` do Java AWT para tratar eventos sem declarar métodos desnecessários).
   - Desacoplamento arquitetural (Model isolado de View; View apenas reflete o Model; Controller intermedia).
+
+### Etapa 3 (30/10/2026) — Ciclo de Jogo (Game Loop) e Delta Time
+- **Branch:** `feat/game-loop-e-delta-time`
+- **Ações:**
+  - **Controller:** Criado `GameLoop` implementando `Runnable` com taxa alvo de 60 FPS, medição de delta time com `System.nanoTime()` e descarte de atrasos bruscos via `limitarDeltaTime` (teto de 0.05s).
+  - **Model:** Adicionado `tempoDecorrido` e método `atualizar(double deltaTime)` no `GameModel`. O tempo só avança durante o estado `JOGANDO` e congela durante `PAUSADO` ou `MENU`.
+  - **View:** `GamePanel` atualizado para exibir em tempo real a contagem de tempo da tentativa durante a partida e o tempo congelado na tela de pausa.
+  - **Testes Unitários:** Adicionadas suítes completas de teste para avanço temporal determinístico no `GameModelTest` e validação do limitador de delta time no `GameLoopTest`.
+- **Conceitos de POO e Java abordados:**
+  - Concorrência básica em Java com `Runnable` e `Thread`.
+  - Visibilidade de memória entre threads com a palavra-chave `volatile`.
+  - Separação entre simulação lógica (`model.atualizar`) e renderização gráfica (`SwingUtilities.invokeLater(view::repaint)`).
+  - Métodos puros e testabilidade determinística com Delta Time injetado.
 
 
 
