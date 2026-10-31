@@ -31,7 +31,7 @@ public class GameModelTest {
         testPuloNoArEIgnorado();
         testPausaCongelaSalto();
         testVoltarAoMenuRestauraSalto();
-        testRotacaoZeraAoAterrissar();
+        testPersonagemTombaUmaVezParaDireita();
 
         System.out.println(">>> [SUCESSO] Todos os testes unitários do GameModel passaram com êxito!");
     }
@@ -237,12 +237,14 @@ public class GameModelTest {
                 "Voltar ao menu deve restaurar a orientação normal.");
     }
 
-    private static void testRotacaoZeraAoAterrissar() {
+    private static void testPersonagemTombaUmaVezParaDireita() {
         GameModel model = new GameModel();
         model.iniciarPartida();
         model.pular();
         model.atualizar(0.1);
-        afirmar(model.getRotacaoPersonagem() > 0.0, "A rotação deve avançar durante o salto.");
+        afirmar(model.getRotacaoPersonagem() > 0.0
+                        && model.getRotacaoPersonagem() < Math.PI / 2.0,
+                "Durante a subida, o personagem deve tombar progressivamente para a direita.");
 
         model.atualizar(0.6);
 
@@ -251,8 +253,16 @@ public class GameModelTest {
                 "A aterrissagem deve alinhar o personagem ao chão sem atravessá-lo.");
         afirmar(model.getVelocidadeVerticalPersonagem() == 0.0,
                 "A velocidade vertical deve zerar na aterrissagem.");
+        afirmar(Math.abs(model.getRotacaoPersonagem() - Math.PI / 2.0) < 0.0001,
+                "Ao aterrissar, o personagem deve permanecer tombado 90 graus para a direita.");
+
+        model.atualizar(0.1);
+        afirmar(Math.abs(model.getRotacaoPersonagem() - Math.PI / 2.0) < 0.0001,
+                "Depois de aterrissar, o personagem deve continuar tombado.");
+
+        model.pular();
         afirmar(model.getRotacaoPersonagem() == 0.0,
-                "A orientação deve voltar imediatamente ao normal ao aterrissar.");
+                "Um novo pulo deve começar com a orientação visual normal.");
     }
 
     private static void afirmar(boolean condicao, String mensagemErro) {
