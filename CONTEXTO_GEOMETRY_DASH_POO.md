@@ -283,7 +283,7 @@ Elementos geométricos podem ser desenhados com `Graphics2D`. Formatos definitiv
 - **Versionamento:** `.gitignore` configurado para ignorar `bin/` e `*.class`.
 
 ### Decisões em aberto (a definir conforme necessidade):
-- Dimensões do personagem, chão e área útil.
+- Dimensões finais do personagem e do chão (baseline visual definido na etapa 4: personagem 40x40 em x=120, chão em y=480; validar com a física).
 - Valores numéricos de velocidade inicial/máxima e aceleração.
 - Gravidade e velocidade inicial do salto.
 - Duração da dica.
@@ -302,7 +302,7 @@ Ajuste após inspecionar o repositório; não duplique o que já existir.
 - [x] **Etapa 1:** Ponto de entrada (`Main.java`), janela fixa Swing (`GameWindow.java`) e `.gitignore`. *(Concluído)*
 - [x] **Etapa 2:** Estabelecer fundação MVC com área de desenho (`Graphics2D` via `GamePanel`), estado mínimo do Model e Controller. *(Concluído)*
 - [x] **Etapa 3:** Implementar ciclo de atualização, delta time limitado e separação atualização/renderização. *(Concluído)*
-- [ ] **Etapa 4:** Desenhar fundo, chão e personagem.
+- [x] **Etapa 4:** Desenhar fundo, chão e personagem. *(Concluída)*
 - [ ] **Etapa 5:** Implementar movimento automático do cenário.
 - [ ] **Etapa 6:** Implementar salto com gravidade, aterrissagem e rotação visual.
 - [ ] **Etapa 7:** Adicionar obstáculos e colisões, com testes.
@@ -433,5 +433,15 @@ O estudante já escolheu Java, Swing, `Graphics2D`, execução local e MVC. Não
   - Separação entre simulação lógica (`model.atualizar`) e renderização gráfica (`SwingUtilities.invokeLater(view::repaint)`).
   - Métodos puros e testabilidade determinística com Delta Time injetado.
 
-
+### Etapa 4 (30/10/2026) — Fundo, Chão e Personagem
+- **Branch:** `feat/fundo-chao-personagem`
+- **Ações:**
+  - **View:** `GamePanel` agora desenha fundo em gradiente, linhas geométricas discretas, chão quadriculado e uma faixa luminosa que marca o piso.
+  - **View:** Desenhado um personagem quadrado estático de 40x40 pixels, com cor própria, contorno e expressão geométrica. Ele fica na posição horizontal x=120, apoiado no chão em y=480.
+  - **Testes:** Criado `GamePanelTest`, que renderiza o painel em um `BufferedImage` e verifica as cores do fundo, do chão e do personagem sem abrir uma janela.
+- **Conceitos de Java e POO abordados:**
+  - `Graphics2D` e `GradientPaint` para composição visual.
+  - Separação entre apresentação e simulação: a View desenha o personagem sem alterar posição, física ou tempo no Model.
+  - Testes headless de interface Swing usando uma imagem em memória.
+- **Limite desta etapa:** O cenário e o personagem permanecem estáticos; o movimento automático será tratado na etapa 5 e o salto na etapa 6.
 
