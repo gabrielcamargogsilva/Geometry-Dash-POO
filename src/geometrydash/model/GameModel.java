@@ -8,29 +8,50 @@ package geometrydash.model;
  * Ela pode ser testada de forma 100% automatizada e isolada sem abrir nenhuma janela.
  * 
  * Conceitos de POO:
- * - Encapsulamento: o atributo `estadoAtual` é privado e suas transições são
- *   feitas através de métodos expressivos com regras de validação (ex: só pode pausar se estiver jogando).
+ * - Encapsulamento: o atributo `estadoAtual` e o `tempoDecorrido` são privados
+ *   e manipulados exclusivamente por métodos de negócio bem definidos.
+ * - Determinismo: O método `atualizar(double deltaTime)` recebe o tempo como parâmetro,
+ *   permitindo testes unitários precisos sem necessidade de pausas reais (sleep).
  */
 public class GameModel {
     private GameState estadoAtual;
+    private double tempoDecorrido; // Tempo total em segundos na tentativa atual
 
     public GameModel() {
-        // Todo jogo começa no Menu Principal
         this.estadoAtual = GameState.MENU;
+        this.tempoDecorrido = 0.0;
     }
 
     /**
-     * Transição para o estado JOGANDO (início da partida).
-     * Só faz sentido iniciar se estivermos no Menu, Derrota ou Vitória.
+     * Atualiza a lógica de simulação do jogo com base no tempo decorrido (Delta Time).
+     * 
+     * Regra do Domínio:
+     * A simulação e a contagem de tempo só avançam quando o jogo estiver no estado JOGANDO.
+     * Durante PAUSADO, MENU, DERROTA ou VITORIA, o tempo fica congelado.
+     * 
+     * @param deltaTime Intervalo de tempo real em segundos desde a última atualização.
+     */
+    public void atualizar(double deltaTime) {
+        if (this.estadoAtual != GameState.JOGANDO) {
+            return;
+        }
+
+        this.tempoDecorrido += deltaTime;
+    }
+
+    /**
+     * Inicia uma nova partida a partir do Menu, Derrota ou Vitória.
+     * Zera o contador de tempo da tentativa.
      */
     public void iniciarPartida() {
         if (estadoAtual == GameState.MENU || estadoAtual == GameState.DERROTA || estadoAtual == GameState.VITORIA) {
             this.estadoAtual = GameState.JOGANDO;
+            this.tempoDecorrido = 0.0;
         }
     }
 
     /**
-     * Alterna o estado de pausa durante o jogo.
+     * Alterna o estado de pausa durante a partida.
      */
     public void alternarPausa() {
         if (this.estadoAtual == GameState.JOGANDO) {
@@ -45,6 +66,7 @@ public class GameModel {
      */
     public void voltarAoMenu() {
         this.estadoAtual = GameState.MENU;
+        this.tempoDecorrido = 0.0;
     }
 
     public GameState getEstadoAtual() {
@@ -54,5 +76,8 @@ public class GameModel {
     public void setEstadoAtual(GameState novoEstado) {
         this.estadoAtual = novoEstado;
     }
-}
 
+    public double getTempoDecorrido() {
+        return tempoDecorrido;
+    }
+}
