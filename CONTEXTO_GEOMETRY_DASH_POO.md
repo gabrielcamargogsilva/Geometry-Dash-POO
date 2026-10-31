@@ -21,6 +21,7 @@ Ajudar a construir um jogo 2D desktop inspirado em Geometry Dash, com identidade
 - Prefira Java padrão e Swing. Justifique qualquer dependência externa.
 - Teste cada etapa e explique o resultado esperado.
 - Recomende commits Git pequenos após unidades funcionais/testes concluídos.
+- Quando uma etapa tiver mudanças separáveis, organize vários commits granulares e coerentes (por exemplo, lógica/testes, View/testes e documentação).
 - Não trate decisões ainda abertas como definitivas.
 - Não repita perguntas já respondidas neste documento.
 - Se um detalhe não bloqueia o trabalho, escolha um padrão simples e reversível, explique-o e registre-o.
@@ -284,7 +285,7 @@ Elementos geométricos podem ser desenhados com `Graphics2D`. Formatos definitiv
 
 ### Decisões em aberto (a definir conforme necessidade):
 - Dimensões finais do personagem e do chão (baseline visual definido na etapa 4: personagem 40x40 em x=120, chão em y=480; validar com a física).
-- Valores numéricos de velocidade inicial/máxima e aceleração.
+- Valores finais de velocidade e aceleração do percurso (a etapa 5 usa 180 px/s como velocidade inicial fixa e reversível do cenário).
 - Gravidade e velocidade inicial do salto.
 - Duração da dica.
 - Esquema JSON e biblioteca/estratégia de leitura.
@@ -303,7 +304,7 @@ Ajuste após inspecionar o repositório; não duplique o que já existir.
 - [x] **Etapa 2:** Estabelecer fundação MVC com área de desenho (`Graphics2D` via `GamePanel`), estado mínimo do Model e Controller. *(Concluído)*
 - [x] **Etapa 3:** Implementar ciclo de atualização, delta time limitado e separação atualização/renderização. *(Concluído)*
 - [x] **Etapa 4:** Desenhar fundo, chão e personagem. *(Concluída)*
-- [ ] **Etapa 5:** Implementar movimento automático do cenário.
+- [x] **Etapa 5:** Implementar movimento automático do cenário. *(Concluída)*
 - [ ] **Etapa 6:** Implementar salto com gravidade, aterrissagem e rotação visual.
 - [ ] **Etapa 7:** Adicionar obstáculos e colisões, com testes.
 - [ ] **Etapa 8:** Carregar fase via JSON e validar dados.
@@ -445,3 +446,16 @@ O estudante já escolheu Java, Swing, `Graphics2D`, execução local e MVC. Não
   - Testes headless de interface Swing usando uma imagem em memória.
 - **Limite desta etapa:** O cenário e o personagem permanecem estáticos; o movimento automático será tratado na etapa 5 e o salto na etapa 6.
 
+### Etapa 5 (30/10/2026) — Movimento Automático do Cenário
+- **Branch:** `feat/movimento-automatico-cenario`
+- **Ações:**
+  - **Model:** `GameModel.atualizar(deltaTime)` agora avança o deslocamento horizontal do cenário a 180 px/s somente durante `JOGANDO`.
+  - **Model:** O deslocamento é mantido dentro de um ciclo de 40 pixels, correspondente à repetição da grade do chão, e reinicia ao iniciar uma nova partida ou voltar ao menu.
+  - **View:** As linhas verticais da grade do chão são desenhadas a partir do deslocamento atual do Model, criando movimento contínuo para a esquerda sem mover o personagem.
+  - **Testes:** `GameModelTest` cobre velocidade, pausa, reinício e limite do ciclo; `GamePanelTest` verifica que a grade se desloca entre quadros.
+- **Decisão reversível:** A velocidade visual inicial é 180 px/s; poderá ser ajustada quando movimento, obstáculos e dificuldade forem calibrados em conjunto.
+- **Conceitos de Java e POO abordados:**
+  - Integração de velocidade por tempo: distância = velocidade × delta time.
+  - Model calcula o estado do movimento; View apenas o representa durante a pintura.
+  - Deslocamento modular mantém a repetição visual da grade sem crescimento numérico contínuo.
+- **Limite desta etapa:** Ainda não há obstáculos; serão adicionados com posições e colisões em etapas posteriores.
