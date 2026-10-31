@@ -1,0 +1,8 @@
+# Byte-code e arquivos compilados
+bin/
+*.class
+
+# Arquivos de sistema
+.DS_Store
+Thumbs.db
+
