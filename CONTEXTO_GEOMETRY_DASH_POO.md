@@ -286,7 +286,7 @@ Elementos geométricos podem ser desenhados com `Graphics2D`. Formatos definitiv
 ### Decisões em aberto (a definir conforme necessidade):
 - Dimensões finais do personagem e do chão (baseline visual definido na etapa 4: personagem 40x40 em x=120, chão em y=480; validar com a física).
 - Valores finais de velocidade e aceleração do percurso (a etapa 5 usa 180 px/s como velocidade inicial fixa e reversível do cenário).
-- Gravidade e velocidade inicial do salto.
+- Valores finais da física do salto (baseline da etapa 6: gravidade 1800 px/s² e velocidade inicial -600 px/s; validar/calibrar com obstáculos).
 - Duração da dica.
 - Esquema JSON e biblioteca/estratégia de leitura.
 - Formato de persistência.
@@ -305,7 +305,7 @@ Ajuste após inspecionar o repositório; não duplique o que já existir.
 - [x] **Etapa 3:** Implementar ciclo de atualização, delta time limitado e separação atualização/renderização. *(Concluído)*
 - [x] **Etapa 4:** Desenhar fundo, chão e personagem. *(Concluída)*
 - [x] **Etapa 5:** Implementar movimento automático do cenário. *(Concluída)*
-- [ ] **Etapa 6:** Implementar salto com gravidade, aterrissagem e rotação visual.
+- [x] **Etapa 6:** Implementar salto com gravidade, aterrissagem e rotação visual. *(Concluída)*
 - [ ] **Etapa 7:** Adicionar obstáculos e colisões, com testes.
 - [ ] **Etapa 8:** Carregar fase via JSON e validar dados.
 - [ ] **Etapa 9:** Implementar estados/telas: menu, dica, pausa, derrota, vitória e transições.
@@ -459,3 +459,19 @@ O estudante já escolheu Java, Swing, `Graphics2D`, execução local e MVC. Não
   - Model calcula o estado do movimento; View apenas o representa durante a pintura.
   - Deslocamento modular mantém a repetição visual da grade sem crescimento numérico contínuo.
 - **Limite desta etapa:** Ainda não há obstáculos; serão adicionados com posições e colisões em etapas posteriores.
+
+### Etapa 6 (30/10/2026) — Salto, Gravidade e Rotação Visual
+- **Branch:** `feat/salto-gravidade-rotacao`
+- **Ações:**
+  - **Model:** Implementada a física vertical com gravidade de 1800 px/s² e velocidade inicial de -600 px/s. O salto atinge cerca de 100 pixels de altura e dura aproximadamente 0,67 segundo.
+  - **Model:** O pulo só é aceito durante `JOGANDO` e quando o personagem está no chão. A posição é integrada pelo delta time; ao cruzar o piso, a posição é ajustada para o chão e a velocidade vertical zera.
+  - **Model:** A pausa congela posição e rotação no ar; iniciar nova partida ou voltar ao menu restaura a posição, velocidade e orientação iniciais.
+  - **Controller:** Espaço inicia a partida no menu e pula durante o jogo. Clique também pula durante o jogo; cliques no menu e comandos de pulo no ar são ignorados.
+  - **View:** O personagem acompanha a posição vertical do Model e completa uma rotação durante o salto. A transformação afeta apenas o desenho, não as regras ou a posição horizontal.
+  - **Concorrência:** Métodos de acesso e atualização do Model são sincronizados para serializar atualizações do GameLoop e comandos recebidos pela interface Swing.
+  - **Testes:** `GameModelTest` cobre início do salto, gravidade, ápice, pausa, aterrissagem, rotação e bloqueio de pulo duplo; `InputControllerTest` verifica teclado e mouse; `GamePanelTest` verifica elevação e rotação renderizadas.
+- **Conceitos de Java e POO abordados:**
+  - Cinemática vertical por aceleração e delta time.
+  - Separação entre estado físico do Model e transformação visual da View.
+  - Sincronização de métodos para coordenar entrada na EDT e atualização do GameLoop.
+- **Limite desta etapa:** A hitbox ainda não foi criada; a rotação do desenho não influencia colisões. Obstáculos e colisões serão tratados nas etapas seguintes.
