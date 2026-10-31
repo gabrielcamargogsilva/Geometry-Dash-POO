@@ -21,7 +21,7 @@ public class GameModel {
     private static final double GRAVIDADE = 1800.0;
     private static final double VELOCIDADE_INICIAL_SALTO = -600.0;
     private static final double VELOCIDADE_CENARIO = 180.0;
-    private static final double ROTACAO_MAXIMA_SALTO = Math.PI / 2.0;
+    private static final double ROTACAO_MAXIMA_SALTO = 2.0 * Math.PI;
     private static final double DURACAO_VOO = -2.0 * VELOCIDADE_INICIAL_SALTO / GRAVIDADE;
     private static final double VELOCIDADE_ROTACAO = ROTACAO_MAXIMA_SALTO / DURACAO_VOO;
 
