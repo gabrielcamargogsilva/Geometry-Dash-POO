@@ -21,9 +21,9 @@ public class GameModel {
     private static final double GRAVIDADE = 1800.0;
     private static final double VELOCIDADE_INICIAL_SALTO = -600.0;
     private static final double VELOCIDADE_CENARIO = 180.0;
-    private static final double ROTACAO_MAXIMA_SALTO = 2.0 * Math.PI;
+    private static final double ROTACAO_POR_SALTO = Math.PI / 2.0;
     private static final double DURACAO_VOO = -2.0 * VELOCIDADE_INICIAL_SALTO / GRAVIDADE;
-    private static final double VELOCIDADE_ROTACAO = ROTACAO_MAXIMA_SALTO / DURACAO_VOO;
+    private static final double VELOCIDADE_ROTACAO = ROTACAO_POR_SALTO / DURACAO_VOO;
 
     private GameState estadoAtual;
     private double tempoDecorrido; // Tempo total em segundos na tentativa atual
@@ -31,6 +31,7 @@ public class GameModel {
     private double posicaoVerticalPersonagem;
     private double velocidadeVerticalPersonagem;
     private double rotacaoPersonagem;
+    private double rotacaoInicialSalto;
     private double tempoNoAr;
     private boolean personagemNoChao;
 
@@ -41,6 +42,7 @@ public class GameModel {
         this.posicaoVerticalPersonagem = POSICAO_CHAO_Y - TAMANHO_PERSONAGEM;
         this.velocidadeVerticalPersonagem = 0.0;
         this.rotacaoPersonagem = 0.0;
+        this.rotacaoInicialSalto = 0.0;
         this.tempoNoAr = 0.0;
         this.personagemNoChao = true;
     }
@@ -79,14 +81,15 @@ public class GameModel {
         if (novaPosicao >= posicaoNoChao) {
             posicaoVerticalPersonagem = posicaoNoChao;
             velocidadeVerticalPersonagem = 0.0;
-            rotacaoPersonagem = ROTACAO_MAXIMA_SALTO;
+            rotacaoPersonagem = (rotacaoInicialSalto + ROTACAO_POR_SALTO) % (2.0 * Math.PI);
             tempoNoAr = 0.0;
             personagemNoChao = true;
             return;
         }
 
         posicaoVerticalPersonagem = novaPosicao;
-        rotacaoPersonagem = Math.min(VELOCIDADE_ROTACAO * tempoNoAr, ROTACAO_MAXIMA_SALTO);
+        rotacaoPersonagem = rotacaoInicialSalto
+                + Math.min(VELOCIDADE_ROTACAO * tempoNoAr, ROTACAO_POR_SALTO);
     }
 
     /**
@@ -127,6 +130,7 @@ public class GameModel {
         posicaoVerticalPersonagem = POSICAO_CHAO_Y - TAMANHO_PERSONAGEM;
         velocidadeVerticalPersonagem = 0.0;
         rotacaoPersonagem = 0.0;
+        rotacaoInicialSalto = 0.0;
         tempoNoAr = 0.0;
         personagemNoChao = true;
     }
@@ -138,8 +142,8 @@ public class GameModel {
 
         personagemNoChao = false;
         velocidadeVerticalPersonagem = VELOCIDADE_INICIAL_SALTO;
+        rotacaoInicialSalto = rotacaoPersonagem;
         tempoNoAr = 0.0;
-        rotacaoPersonagem = 0.0;
         return true;
     }
 
