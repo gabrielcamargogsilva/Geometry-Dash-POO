@@ -53,11 +53,12 @@ public class GamePanelTest {
         model.atualizar(0.6);
         BufferedImage imagemAterrissado = renderizar(painel);
         int[] limitesPersonagemAterrissado = limitesDaCor(imagemAterrissado, new Color(45, 218, 204));
-        if (!java.util.Arrays.equals(limitesPersonagemAterrissado, limitesPersonagemNoChao)) {
-            throw new AssertionError("Após completar a volta, o personagem deve aterrissar em pé.");
+        if (limitesPersonagemAterrissado[1] >= limitesPersonagemNoChao[1]
+                || contarPixelsDiferentes(imagemInicial, imagemAterrissado, 100, 420, 180, 500) == 0) {
+            throw new AssertionError("O personagem deve aterrissar ainda girado 90 graus para a direita.");
         }
 
-        System.out.println(">>> [SUCESSO] A cena, o cenário móvel e a volta completa foram renderizados corretamente.");
+        System.out.println(">>> [SUCESSO] A cena, o cenário móvel e o giro de 90 graus por salto foram renderizados corretamente.");
     }
 
     private static BufferedImage renderizar(GamePanel painel) {
@@ -90,6 +91,19 @@ public class GamePanelTest {
             throw new AssertionError("A cor do personagem não foi encontrada na imagem.");
         }
         return new int[] { minimoX, minimoY, maximoX, maximoY };
+    }
+
+    private static int contarPixelsDiferentes(
+            BufferedImage primeira, BufferedImage segunda, int minimoX, int minimoY, int maximoX, int maximoY) {
+        int quantidade = 0;
+        for (int y = minimoY; y < maximoY; y++) {
+            for (int x = minimoX; x < maximoX; x++) {
+                if (primeira.getRGB(x, y) != segunda.getRGB(x, y)) {
+                    quantidade++;
+                }
+            }
+        }
+        return quantidade;
     }
 
     private static void afirmarCor(BufferedImage imagem, int x, int y, Color corEsperada, String elemento) {

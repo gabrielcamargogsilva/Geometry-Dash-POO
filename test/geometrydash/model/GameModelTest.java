@@ -31,7 +31,7 @@ public class GameModelTest {
         testPuloNoArEIgnorado();
         testPausaCongelaSalto();
         testVoltarAoMenuRestauraSalto();
-        testPersonagemCompletaUmaVoltaDuranteOSalto();
+        testCadaSaltoGira90GrausEAterrissaNaNovaOrientacao();
 
         System.out.println(">>> [SUCESSO] Todos os testes unitários do GameModel passaram com êxito!");
     }
@@ -237,45 +237,44 @@ public class GameModelTest {
                 "Voltar ao menu deve restaurar a orientação normal.");
     }
 
-    private static void testPersonagemCompletaUmaVoltaDuranteOSalto() {
+    private static void testCadaSaltoGira90GrausEAterrissaNaNovaOrientacao() {
         GameModel model = new GameModel();
         model.iniciarPartida();
-        model.pular();
-        double intervaloPorQuartoDeVolta = 1.0 / 6.0;
-        double[] rotacoesEsperadas = {
+        double intervaloDeAtualizacao = 1.0 / 6.0;
+        double[] orientacoesAposCadaSalto = {
                 Math.PI / 2.0,
                 Math.PI,
                 3.0 * Math.PI / 2.0,
-                2.0 * Math.PI
+                0.0
         };
-        String[] orientacoes = {
-                "de lado",
+        String[] descricoesOrientacao = {
+                "de lado para a direita",
                 "de cabeça para baixo",
                 "de lado para o outro lado",
                 "em pé novamente"
         };
 
-        for (int i = 0; i < rotacoesEsperadas.length; i++) {
-            model.atualizar(intervaloPorQuartoDeVolta);
-            afirmar(Math.abs(model.getRotacaoPersonagem() - rotacoesEsperadas[i]) < 0.0001,
-                    "Após cada quarto do salto, o personagem deve ficar " + orientacoes[i] + ".");
+        for (int salto = 0; salto < orientacoesAposCadaSalto.length; salto++) {
+            double rotacaoAntesDoSalto = model.getRotacaoPersonagem();
+            afirmar(model.pular(), "O salto seguinte deve ser aceito após aterrissar.");
+            afirmar(model.getRotacaoPersonagem() == rotacaoAntesDoSalto,
+                    "O próximo salto deve começar da orientação em que o anterior aterrissou.");
+
+            for (int quarto = 0; quarto < 4; quarto++) {
+                model.atualizar(intervaloDeAtualizacao);
+            }
+
+            afirmar(model.isPersonagemNoChao(), "Cada salto deve terminar com uma aterrissagem.");
+            afirmar(Math.abs(model.getRotacaoPersonagem() - orientacoesAposCadaSalto[salto]) < 0.0001,
+                    "Após o salto " + (salto + 1) + ", deve aterrissar " + descricoesOrientacao[salto] + ".");
+            afirmar(model.getPosicaoVerticalPersonagem() == 440.0,
+                    "Cada aterrissagem deve alinhar o personagem ao chão.");
+            afirmar(model.getVelocidadeVerticalPersonagem() == 0.0,
+                    "A velocidade vertical deve zerar em cada aterrissagem.");
         }
 
-        afirmar(model.isPersonagemNoChao(), "O personagem deve aterrissar após o tempo de voo.");
-        afirmar(model.getPosicaoVerticalPersonagem() == 440.0,
-                "A aterrissagem deve alinhar o personagem ao chão sem atravessá-lo.");
-        afirmar(model.getVelocidadeVerticalPersonagem() == 0.0,
-                "A velocidade vertical deve zerar na aterrissagem.");
-        afirmar(Math.abs(model.getRotacaoPersonagem() - 2.0 * Math.PI) < 0.0001,
-                "Ao aterrissar, o personagem deve completar a volta e ficar em pé novamente.");
-
-        model.atualizar(0.1);
-        afirmar(Math.abs(model.getRotacaoPersonagem() - 2.0 * Math.PI) < 0.0001,
-                "Depois de aterrissar, o personagem deve continuar em pé.");
-
-        model.pular();
-        afirmar(model.getRotacaoPersonagem() == 0.0,
-                "Um novo pulo deve começar com a orientação visual normal.");
+        afirmar(Math.abs(model.getRotacaoPersonagem()) < 0.0001,
+                "A volta completa só deve acontecer ao longo de quatro saltos separados.");
     }
 
     private static void afirmar(boolean condicao, String mensagemErro) {
