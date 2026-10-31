@@ -27,9 +27,9 @@ public class GamePanel extends JPanel {
     public static final int LARGURA = 800;
     public static final int ALTURA = 600;
 
-    private static final int POSICAO_CHAO_Y = 480;
+    private static final int POSICAO_CHAO_Y = (int) GameModel.POSICAO_CHAO_Y;
     private static final int POSICAO_PERSONAGEM_X = 120;
-    private static final int TAMANHO_PERSONAGEM = 40;
+    private static final int TAMANHO_PERSONAGEM = (int) GameModel.TAMANHO_PERSONAGEM;
     private static final Color COR_FUNDO_SUPERIOR = new Color(17, 24, 43);
     private static final Color COR_FUNDO_INFERIOR = new Color(38, 34, 65);
     private static final Color COR_CHAO = new Color(29, 38, 57);
@@ -96,22 +96,28 @@ public class GamePanel extends JPanel {
     }
 
     private void desenharPersonagem(Graphics2D g2d) {
-        int posicaoY = POSICAO_CHAO_Y - TAMANHO_PERSONAGEM;
+        int posicaoY = (int) Math.round(model.getPosicaoVerticalPersonagem());
         g2d.setColor(new Color(0, 0, 0, 55));
         g2d.fillOval(POSICAO_PERSONAGEM_X - 4, POSICAO_CHAO_Y - 2,
                 TAMANHO_PERSONAGEM + 8, 8);
 
-        g2d.setColor(COR_PERSONAGEM);
-        g2d.fillRect(POSICAO_PERSONAGEM_X, posicaoY, TAMANHO_PERSONAGEM, TAMANHO_PERSONAGEM);
+        Graphics2D graphicsPersonagem = (Graphics2D) g2d.create();
+        graphicsPersonagem.rotate(model.getRotacaoPersonagem(),
+                POSICAO_PERSONAGEM_X + TAMANHO_PERSONAGEM / 2.0,
+                posicaoY + TAMANHO_PERSONAGEM / 2.0);
 
-        g2d.setColor(new Color(220, 255, 250));
-        g2d.drawRect(POSICAO_PERSONAGEM_X, posicaoY,
+        graphicsPersonagem.setColor(COR_PERSONAGEM);
+        graphicsPersonagem.fillRect(POSICAO_PERSONAGEM_X, posicaoY, TAMANHO_PERSONAGEM, TAMANHO_PERSONAGEM);
+
+        graphicsPersonagem.setColor(new Color(220, 255, 250));
+        graphicsPersonagem.drawRect(POSICAO_PERSONAGEM_X, posicaoY,
                 TAMANHO_PERSONAGEM - 1, TAMANHO_PERSONAGEM - 1);
 
-        g2d.setColor(new Color(19, 38, 55));
-        g2d.fillRect(POSICAO_PERSONAGEM_X + 9, posicaoY + 11, 5, 7);
-        g2d.fillRect(POSICAO_PERSONAGEM_X + 26, posicaoY + 11, 5, 7);
-        g2d.fillRect(POSICAO_PERSONAGEM_X + 14, posicaoY + 27, 12, 4);
+        graphicsPersonagem.setColor(new Color(19, 38, 55));
+        graphicsPersonagem.fillRect(POSICAO_PERSONAGEM_X + 9, posicaoY + 11, 5, 7);
+        graphicsPersonagem.fillRect(POSICAO_PERSONAGEM_X + 26, posicaoY + 11, 5, 7);
+        graphicsPersonagem.fillRect(POSICAO_PERSONAGEM_X + 14, posicaoY + 27, 12, 4);
+        graphicsPersonagem.dispose();
     }
 
     private void desenharInterfacePorEstado(Graphics2D g2d) {
