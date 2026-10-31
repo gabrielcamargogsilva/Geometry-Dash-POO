@@ -31,7 +31,7 @@ public class GameModelTest {
         testPuloNoArEIgnorado();
         testPausaCongelaSalto();
         testVoltarAoMenuRestauraSalto();
-        testPersonagemTombaUmaVezParaDireita();
+        testPersonagemCompletaUmaVoltaDuranteOSalto();
 
         System.out.println(">>> [SUCESSO] Todos os testes unitários do GameModel passaram com êxito!");
     }
@@ -237,28 +237,41 @@ public class GameModelTest {
                 "Voltar ao menu deve restaurar a orientação normal.");
     }
 
-    private static void testPersonagemTombaUmaVezParaDireita() {
+    private static void testPersonagemCompletaUmaVoltaDuranteOSalto() {
         GameModel model = new GameModel();
         model.iniciarPartida();
         model.pular();
-        model.atualizar(0.1);
-        afirmar(model.getRotacaoPersonagem() > 0.0
-                        && model.getRotacaoPersonagem() < Math.PI / 2.0,
-                "Durante a subida, o personagem deve tombar progressivamente para a direita.");
+        double intervaloPorQuartoDeVolta = 1.0 / 6.0;
+        double[] rotacoesEsperadas = {
+                Math.PI / 2.0,
+                Math.PI,
+                3.0 * Math.PI / 2.0,
+                2.0 * Math.PI
+        };
+        String[] orientacoes = {
+                "de lado",
+                "de cabeça para baixo",
+                "de lado para o outro lado",
+                "em pé novamente"
+        };
 
-        model.atualizar(0.6);
+        for (int i = 0; i < rotacoesEsperadas.length; i++) {
+            model.atualizar(intervaloPorQuartoDeVolta);
+            afirmar(Math.abs(model.getRotacaoPersonagem() - rotacoesEsperadas[i]) < 0.0001,
+                    "Após cada quarto do salto, o personagem deve ficar " + orientacoes[i] + ".");
+        }
 
         afirmar(model.isPersonagemNoChao(), "O personagem deve aterrissar após o tempo de voo.");
         afirmar(model.getPosicaoVerticalPersonagem() == 440.0,
                 "A aterrissagem deve alinhar o personagem ao chão sem atravessá-lo.");
         afirmar(model.getVelocidadeVerticalPersonagem() == 0.0,
                 "A velocidade vertical deve zerar na aterrissagem.");
-        afirmar(Math.abs(model.getRotacaoPersonagem() - Math.PI / 2.0) < 0.0001,
-                "Ao aterrissar, o personagem deve permanecer tombado 90 graus para a direita.");
+        afirmar(Math.abs(model.getRotacaoPersonagem() - 2.0 * Math.PI) < 0.0001,
+                "Ao aterrissar, o personagem deve completar a volta e ficar em pé novamente.");
 
         model.atualizar(0.1);
-        afirmar(Math.abs(model.getRotacaoPersonagem() - Math.PI / 2.0) < 0.0001,
-                "Depois de aterrissar, o personagem deve continuar tombado.");
+        afirmar(Math.abs(model.getRotacaoPersonagem() - 2.0 * Math.PI) < 0.0001,
+                "Depois de aterrissar, o personagem deve continuar em pé.");
 
         model.pular();
         afirmar(model.getRotacaoPersonagem() == 0.0,

@@ -47,18 +47,17 @@ public class GamePanelTest {
         }
         if (limitesPersonagemNoSalto[0] >= limitesPersonagemNoChao[0]
                 || limitesPersonagemNoSalto[2] <= limitesPersonagemNoChao[2]) {
-            throw new AssertionError("O tombamento à direita deve alterar os limites visuais do personagem.");
+            throw new AssertionError("A rotação durante o salto deve alterar os limites visuais do personagem.");
         }
 
         model.atualizar(0.6);
         BufferedImage imagemAterrissado = renderizar(painel);
         int[] limitesPersonagemAterrissado = limitesDaCor(imagemAterrissado, new Color(45, 218, 204));
-        if (limitesPersonagemAterrissado[0] >= limitesPersonagemNoChao[0]
-                || limitesPersonagemAterrissado[2] <= limitesPersonagemNoChao[2]) {
-            throw new AssertionError("O personagem deve aterrissar ainda tombado para a direita.");
+        if (!java.util.Arrays.equals(limitesPersonagemAterrissado, limitesPersonagemNoChao)) {
+            throw new AssertionError("Após completar a volta, o personagem deve aterrissar em pé.");
         }
 
-        System.out.println(">>> [SUCESSO] A cena, o cenário móvel e o tombamento único foram renderizados corretamente.");
+        System.out.println(">>> [SUCESSO] A cena, o cenário móvel e a volta completa foram renderizados corretamente.");
     }
 
     private static BufferedImage renderizar(GamePanel painel) {
