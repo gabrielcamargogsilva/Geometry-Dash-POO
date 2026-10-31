@@ -14,12 +14,18 @@ package geometrydash.model;
  *   permitindo testes unitários precisos sem necessidade de pausas reais (sleep).
  */
 public class GameModel {
+    public static final double TAMANHO_CICLO_CENARIO = 40.0;
+
+    private static final double VELOCIDADE_CENARIO = 180.0;
+
     private GameState estadoAtual;
     private double tempoDecorrido; // Tempo total em segundos na tentativa atual
+    private volatile double deslocamentoCenario;
 
     public GameModel() {
         this.estadoAtual = GameState.MENU;
         this.tempoDecorrido = 0.0;
+        this.deslocamentoCenario = 0.0;
     }
 
     /**
@@ -37,6 +43,8 @@ public class GameModel {
         }
 
         this.tempoDecorrido += deltaTime;
+        deslocamentoCenario = (deslocamentoCenario + VELOCIDADE_CENARIO * deltaTime)
+                % TAMANHO_CICLO_CENARIO;
     }
 
     /**
@@ -47,6 +55,7 @@ public class GameModel {
         if (estadoAtual == GameState.MENU || estadoAtual == GameState.DERROTA || estadoAtual == GameState.VITORIA) {
             this.estadoAtual = GameState.JOGANDO;
             this.tempoDecorrido = 0.0;
+            this.deslocamentoCenario = 0.0;
         }
     }
 
@@ -67,6 +76,7 @@ public class GameModel {
     public void voltarAoMenu() {
         this.estadoAtual = GameState.MENU;
         this.tempoDecorrido = 0.0;
+        this.deslocamentoCenario = 0.0;
     }
 
     public GameState getEstadoAtual() {
@@ -79,5 +89,9 @@ public class GameModel {
 
     public double getTempoDecorrido() {
         return tempoDecorrido;
+    }
+
+    public double getDeslocamentoCenario() {
+        return deslocamentoCenario;
     }
 }

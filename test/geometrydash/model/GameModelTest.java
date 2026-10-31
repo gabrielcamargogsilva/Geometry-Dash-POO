@@ -20,6 +20,10 @@ public class GameModelTest {
         testTempoAvancaDuranteJogo();
         testTempoCongelaNaPausa();
         testTempoZeraAoIniciarNovaPartida();
+        testCenarioMoveComDeltaTime();
+        testCenarioCongelaNaPausa();
+        testCenarioReiniciaComNovaPartida();
+        testDeslocamentoCenarioPermaneceNoCicloVisual();
 
         System.out.println(">>> [SUCESSO] Todos os testes unitários do GameModel passaram com êxito!");
     }
@@ -92,6 +96,47 @@ public class GameModelTest {
         model.iniciarPartida();
 
         afirmar(model.getTempoDecorrido() == 0.0, "Ao iniciar uma nova tentativa, o tempo deve reiniciar em 0.0.");
+    }
+
+    private static void testCenarioMoveComDeltaTime() {
+        GameModel model = new GameModel();
+        model.iniciarPartida();
+        model.atualizar(0.1);
+
+        afirmar(Math.abs(model.getDeslocamentoCenario() - 18.0) < 0.0001,
+                "Em 0.1s, o cenário deve se deslocar 18 pixels a 180 pixels por segundo.");
+    }
+
+    private static void testCenarioCongelaNaPausa() {
+        GameModel model = new GameModel();
+        model.iniciarPartida();
+        model.atualizar(0.1);
+        model.alternarPausa();
+        model.atualizar(0.5);
+
+        afirmar(Math.abs(model.getDeslocamentoCenario() - 18.0) < 0.0001,
+                "Durante a pausa, o cenário deve permanecer parado.");
+    }
+
+    private static void testCenarioReiniciaComNovaPartida() {
+        GameModel model = new GameModel();
+        model.iniciarPartida();
+        model.atualizar(0.1);
+        model.voltarAoMenu();
+        model.iniciarPartida();
+
+        afirmar(model.getDeslocamentoCenario() == 0.0,
+                "Uma nova partida deve reiniciar o deslocamento do cenário.");
+    }
+
+    private static void testDeslocamentoCenarioPermaneceNoCicloVisual() {
+        GameModel model = new GameModel();
+        model.iniciarPartida();
+        model.atualizar(1.0);
+
+        afirmar(model.getDeslocamentoCenario() >= 0.0
+                        && model.getDeslocamentoCenario() < GameModel.TAMANHO_CICLO_CENARIO,
+                "O deslocamento deve permanecer limitado ao ciclo visual do piso.");
     }
 
     private static void afirmar(boolean condicao, String mensagemErro) {
