@@ -7,6 +7,7 @@ import javax.swing.JPanel;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.GradientPaint;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
@@ -25,6 +26,14 @@ import java.awt.RenderingHints;
 public class GamePanel extends JPanel {
     public static final int LARGURA = 800;
     public static final int ALTURA = 600;
+
+    private static final int POSICAO_CHAO_Y = 480;
+    private static final int POSICAO_PERSONAGEM_X = 120;
+    private static final int TAMANHO_PERSONAGEM = 40;
+    private static final Color COR_FUNDO_SUPERIOR = new Color(17, 24, 43);
+    private static final Color COR_FUNDO_INFERIOR = new Color(38, 34, 65);
+    private static final Color COR_CHAO = new Color(29, 38, 57);
+    private static final Color COR_PERSONAGEM = new Color(45, 218, 204);
 
     private final GameModel model;
 
@@ -54,16 +63,53 @@ public class GamePanel extends JPanel {
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
         desenharCenarioBase(g2d);
+        desenharPersonagem(g2d);
         desenharInterfacePorEstado(g2d);
     }
 
     private void desenharCenarioBase(Graphics2D g2d) {
-        // Linha do chão temporária para referência espacial
-        g2d.setColor(new Color(60, 60, 80));
-        g2d.fillRect(0, 480, LARGURA, 120);
+        g2d.setPaint(new GradientPaint(
+                0, 0, COR_FUNDO_SUPERIOR,
+                0, POSICAO_CHAO_Y, COR_FUNDO_INFERIOR));
+        g2d.fillRect(0, 0, LARGURA, POSICAO_CHAO_Y);
 
-        g2d.setColor(new Color(120, 120, 160));
-        g2d.fillRect(0, 476, LARGURA, 4);
+        g2d.setColor(new Color(105, 117, 160, 35));
+        for (int y = 40; y < POSICAO_CHAO_Y; y += 40) {
+            g2d.drawLine(0, y, LARGURA, y);
+        }
+
+        g2d.setColor(COR_CHAO);
+        g2d.fillRect(0, POSICAO_CHAO_Y, LARGURA, ALTURA - POSICAO_CHAO_Y);
+
+        g2d.setColor(new Color(75, 93, 125, 90));
+        for (int x = 0; x < LARGURA; x += 40) {
+            g2d.drawLine(x, POSICAO_CHAO_Y, x, ALTURA);
+        }
+        for (int y = POSICAO_CHAO_Y + 40; y < ALTURA; y += 40) {
+            g2d.drawLine(0, y, LARGURA, y);
+        }
+
+        g2d.setColor(new Color(91, 244, 224));
+        g2d.fillRect(0, POSICAO_CHAO_Y - 4, LARGURA, 4);
+    }
+
+    private void desenharPersonagem(Graphics2D g2d) {
+        int posicaoY = POSICAO_CHAO_Y - TAMANHO_PERSONAGEM;
+        g2d.setColor(new Color(0, 0, 0, 55));
+        g2d.fillOval(POSICAO_PERSONAGEM_X - 4, POSICAO_CHAO_Y - 2,
+                TAMANHO_PERSONAGEM + 8, 8);
+
+        g2d.setColor(COR_PERSONAGEM);
+        g2d.fillRect(POSICAO_PERSONAGEM_X, posicaoY, TAMANHO_PERSONAGEM, TAMANHO_PERSONAGEM);
+
+        g2d.setColor(new Color(220, 255, 250));
+        g2d.drawRect(POSICAO_PERSONAGEM_X, posicaoY,
+                TAMANHO_PERSONAGEM - 1, TAMANHO_PERSONAGEM - 1);
+
+        g2d.setColor(new Color(19, 38, 55));
+        g2d.fillRect(POSICAO_PERSONAGEM_X + 9, posicaoY + 11, 5, 7);
+        g2d.fillRect(POSICAO_PERSONAGEM_X + 26, posicaoY + 11, 5, 7);
+        g2d.fillRect(POSICAO_PERSONAGEM_X + 14, posicaoY + 27, 12, 4);
     }
 
     private void desenharInterfacePorEstado(Graphics2D g2d) {
