@@ -21,8 +21,9 @@ public class GameModel {
     private static final double GRAVIDADE = 1800.0;
     private static final double VELOCIDADE_INICIAL_SALTO = -600.0;
     private static final double VELOCIDADE_CENARIO = 180.0;
+    private static final double ROTACAO_MAXIMA_SALTO = Math.PI / 2.0;
     private static final double DURACAO_VOO = -2.0 * VELOCIDADE_INICIAL_SALTO / GRAVIDADE;
-    private static final double VELOCIDADE_ROTACAO = 2.0 * Math.PI / DURACAO_VOO;
+    private static final double VELOCIDADE_ROTACAO = ROTACAO_MAXIMA_SALTO / DURACAO_VOO;
 
     private GameState estadoAtual;
     private double tempoDecorrido; // Tempo total em segundos na tentativa atual
@@ -78,14 +79,14 @@ public class GameModel {
         if (novaPosicao >= posicaoNoChao) {
             posicaoVerticalPersonagem = posicaoNoChao;
             velocidadeVerticalPersonagem = 0.0;
-            rotacaoPersonagem = 0.0;
+            rotacaoPersonagem = ROTACAO_MAXIMA_SALTO;
             tempoNoAr = 0.0;
             personagemNoChao = true;
             return;
         }
 
         posicaoVerticalPersonagem = novaPosicao;
-        rotacaoPersonagem = Math.min(VELOCIDADE_ROTACAO * tempoNoAr, 2.0 * Math.PI);
+        rotacaoPersonagem = Math.min(VELOCIDADE_ROTACAO * tempoNoAr, ROTACAO_MAXIMA_SALTO);
     }
 
     /**
