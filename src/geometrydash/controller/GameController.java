@@ -7,27 +7,38 @@ import geometrydash.view.GamePanel;
  * Orquestrador principal do jogo (Camada Controller).
  * 
  * Papel no MVC:
- * Faz a ligação entre as camadas:
- * - Conhece o Model (GameModel)
- * - Conhece a View (GamePanel)
- * - Registra os controladores de entrada (InputController)
+ * - Faz a ligação entre Model, View e eventos de entrada.
+ * - Gerencia o ciclo de vida do GameLoop (inicialização e encerramento).
  */
 public class GameController {
     private final GameModel model;
     private final GamePanel view;
     private final InputController inputController;
+    private final GameLoop gameLoop;
 
     public GameController(GameModel model, GamePanel view) {
         this.model = model;
         this.view = view;
         this.inputController = new InputController(model, view);
+        this.gameLoop = new GameLoop(model, view);
 
         inicializarControles();
+        iniciarCiclo();
     }
 
     private void inicializarControles() {
-        // Registra o tratador de eventos de teclado no painel visual
         view.addKeyListener(inputController);
+    }
+
+    private void iniciarCiclo() {
+        gameLoop.iniciar();
+    }
+
+    /**
+     * Encerra o loop do jogo de forma segura.
+     */
+    public void encerrar() {
+        gameLoop.parar();
     }
 
     public GameModel getModel() {
@@ -37,5 +48,8 @@ public class GameController {
     public GamePanel getView() {
         return view;
     }
-}
 
+    public GameLoop getGameLoop() {
+        return gameLoop;
+    }
+}
