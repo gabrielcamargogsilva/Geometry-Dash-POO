@@ -28,6 +28,7 @@ public class GameController {
 
     private void inicializarControles() {
         view.addKeyListener(inputController);
+        view.addMouseListener(inputController.getMouseAdapter());
     }
 
     private void iniciarCiclo() {
