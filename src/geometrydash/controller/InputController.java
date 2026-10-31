@@ -6,6 +6,8 @@ import geometrydash.view.GamePanel;
 
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 /**
  * Captura e interpreta entradas de teclado do jogador (Camada Controller).
@@ -24,10 +26,20 @@ import java.awt.event.KeyEvent;
 public class InputController extends KeyAdapter {
     private final GameModel model;
     private final GamePanel view;
+    private final MouseAdapter mouseAdapter;
 
     public InputController(GameModel model, GamePanel view) {
         this.model = model;
         this.view = view;
+        this.mouseAdapter = new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                if (InputController.this.model.getEstadoAtual() == GameState.JOGANDO) {
+                    InputController.this.model.pular();
+                    InputController.this.view.repaint();
+                }
+            }
+        };
     }
 
     @Override
@@ -41,6 +53,9 @@ public class InputController extends KeyAdapter {
                 if (estadoAtual == GameState.MENU) {
                     model.iniciarPartida();
                     view.repaint(); // Solicita à View o redesenho com o novo estado
+                } else if (estadoAtual == GameState.JOGANDO) {
+                    model.pular();
+                    view.repaint();
                 }
                 break;
 
@@ -64,5 +79,8 @@ public class InputController extends KeyAdapter {
                 break;
         }
     }
-}
 
+    public MouseAdapter getMouseAdapter() {
+        return mouseAdapter;
+    }
+}
