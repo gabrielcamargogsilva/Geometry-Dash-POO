@@ -24,6 +24,14 @@ public class GameModelTest {
         testCenarioCongelaNaPausa();
         testCenarioReiniciaComNovaPartida();
         testDeslocamentoCenarioPermaneceNoCicloVisual();
+        testPersonagemComecaNoChao();
+        testPuloSoPodeComecarDurantePartida();
+        testSaltoAvancaComGravidade();
+        testSaltoAtingeApexEVoltaAoChao();
+        testPuloNoArEIgnorado();
+        testPausaCongelaSalto();
+        testVoltarAoMenuRestauraSalto();
+        testRotacaoZeraAoAterrissar();
 
         System.out.println(">>> [SUCESSO] Todos os testes unitários do GameModel passaram com êxito!");
     }
@@ -137,6 +145,114 @@ public class GameModelTest {
         afirmar(model.getDeslocamentoCenario() >= 0.0
                         && model.getDeslocamentoCenario() < GameModel.TAMANHO_CICLO_CENARIO,
                 "O deslocamento deve permanecer limitado ao ciclo visual do piso.");
+    }
+
+    private static void testPersonagemComecaNoChao() {
+        GameModel model = new GameModel();
+
+        afirmar(model.isPersonagemNoChao(), "O personagem deve iniciar apoiado no chão.");
+        afirmar(model.getPosicaoVerticalPersonagem() == 440.0,
+                "A posição vertical inicial deve alinhar o personagem ao chão.");
+        afirmar(model.getRotacaoPersonagem() == 0.0, "O personagem deve iniciar sem rotação.");
+    }
+
+    private static void testPuloSoPodeComecarDurantePartida() {
+        GameModel model = new GameModel();
+        afirmar(!model.pular(), "O comando de pulo deve ser ignorado no menu.");
+
+        model.iniciarPartida();
+        afirmar(model.pular(), "O pulo deve ser aceito durante a partida quando o personagem está no chão.");
+        afirmar(!model.isPersonagemNoChao(), "Após pular, o personagem deve estar no ar.");
+    }
+
+    private static void testSaltoAvancaComGravidade() {
+        GameModel model = new GameModel();
+        model.iniciarPartida();
+        model.pular();
+        model.atualizar(0.1);
+
+        afirmar(Math.abs(model.getPosicaoVerticalPersonagem() - 389.0) < 0.0001,
+                "Após 0.1s, a posição deve refletir velocidade inicial e gravidade.");
+        afirmar(Math.abs(model.getVelocidadeVerticalPersonagem() + 420.0) < 0.0001,
+                "A gravidade deve reduzir a velocidade de subida após 0.1s.");
+        afirmar(model.getRotacaoPersonagem() > 0.0, "O personagem deve girar enquanto está no ar.");
+    }
+
+    private static void testSaltoAtingeApexEVoltaAoChao() {
+        GameModel model = new GameModel();
+        model.iniciarPartida();
+        model.pular();
+        model.atualizar(1.0 / 3.0);
+
+        afirmar(Math.abs(model.getPosicaoVerticalPersonagem() - 340.0) < 0.0001,
+                "No ápice, o personagem deve estar 100 pixels acima do chão.");
+        afirmar(Math.abs(model.getVelocidadeVerticalPersonagem()) < 0.0001,
+                "A velocidade vertical deve chegar a zero no ápice.");
+        afirmar(!model.isPersonagemNoChao(), "O personagem ainda deve estar no ar no ápice.");
+    }
+
+    private static void testPuloNoArEIgnorado() {
+        GameModel model = new GameModel();
+        model.iniciarPartida();
+        model.pular();
+        model.atualizar(0.1);
+        double velocidadeAntesDoSegundoComando = model.getVelocidadeVerticalPersonagem();
+
+        afirmar(!model.pular(), "Um segundo comando no ar não pode iniciar outro pulo.");
+        afirmar(model.getVelocidadeVerticalPersonagem() == velocidadeAntesDoSegundoComando,
+                "Um comando ignorado não deve alterar a velocidade do salto atual.");
+    }
+
+    private static void testPausaCongelaSalto() {
+        GameModel model = new GameModel();
+        model.iniciarPartida();
+        model.pular();
+        model.atualizar(0.1);
+        double posicaoAntesDaPausa = model.getPosicaoVerticalPersonagem();
+        double rotacaoAntesDaPausa = model.getRotacaoPersonagem();
+
+        model.alternarPausa();
+        model.atualizar(0.5);
+
+        afirmar(model.getPosicaoVerticalPersonagem() == posicaoAntesDaPausa,
+                "A posição do personagem deve congelar durante a pausa.");
+        afirmar(model.getRotacaoPersonagem() == rotacaoAntesDaPausa,
+                "A rotação do personagem deve congelar durante a pausa.");
+        afirmar(!model.pular(), "O comando de pulo deve ser ignorado durante a pausa.");
+    }
+
+    private static void testVoltarAoMenuRestauraSalto() {
+        GameModel model = new GameModel();
+        model.iniciarPartida();
+        model.pular();
+        model.atualizar(0.1);
+        model.voltarAoMenu();
+
+        afirmar(model.isPersonagemNoChao(), "Voltar ao menu deve restaurar o estado no chão.");
+        afirmar(model.getPosicaoVerticalPersonagem() == 440.0,
+                "Voltar ao menu deve restaurar a posição vertical inicial.");
+        afirmar(model.getVelocidadeVerticalPersonagem() == 0.0,
+                "Voltar ao menu deve zerar a velocidade vertical.");
+        afirmar(model.getRotacaoPersonagem() == 0.0,
+                "Voltar ao menu deve restaurar a orientação normal.");
+    }
+
+    private static void testRotacaoZeraAoAterrissar() {
+        GameModel model = new GameModel();
+        model.iniciarPartida();
+        model.pular();
+        model.atualizar(0.1);
+        afirmar(model.getRotacaoPersonagem() > 0.0, "A rotação deve avançar durante o salto.");
+
+        model.atualizar(0.6);
+
+        afirmar(model.isPersonagemNoChao(), "O personagem deve aterrissar após o tempo de voo.");
+        afirmar(model.getPosicaoVerticalPersonagem() == 440.0,
+                "A aterrissagem deve alinhar o personagem ao chão sem atravessá-lo.");
+        afirmar(model.getVelocidadeVerticalPersonagem() == 0.0,
+                "A velocidade vertical deve zerar na aterrissagem.");
+        afirmar(model.getRotacaoPersonagem() == 0.0,
+                "A orientação deve voltar imediatamente ao normal ao aterrissar.");
     }
 
     private static void afirmar(boolean condicao, String mensagemErro) {
