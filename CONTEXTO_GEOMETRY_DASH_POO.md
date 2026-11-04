@@ -306,8 +306,8 @@ Ajuste após inspecionar o repositório; não duplique o que já existir.
 - [x] **Etapa 4:** Desenhar fundo, chão e personagem. *(Concluída)*
 - [x] **Etapa 5:** Implementar movimento automático do cenário. *(Concluída)*
 - [x] **Etapa 6:** Implementar salto com gravidade, aterrissagem e rotação visual. *(Concluída)*
-- [ ] **Etapa 7:** Adicionar obstáculos e colisões, com testes.
-- [ ] **Etapa 8:** Carregar fase via JSON e validar dados.
+- [x] **Etapa 7:** Adicionar obstáculos e colisões, com testes. *(Concluída: obstáculos básicos, movimento sincronizado com o cenário e detecção simples de colisão em rectângulo, com testes unitários cobrindo movimento e derrota.)*
+- [x] **Etapa 8:** Carregar fase via JSON e validar dados. *(Concluída: adicionado carregador de fases com validação estrutural e tipos de obstáculo, além de arquivo JSON de exemplo em resources/phases/.)*
 - [ ] **Etapa 9:** Implementar estados/telas: menu, dica, pausa, derrota, vitória e transições.
 - [ ] **Etapa 10:** Implementar progresso e dificuldade progressiva.
 - [ ] **Etapa 11:** Adicionar áudio.

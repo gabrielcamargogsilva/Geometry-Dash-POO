@@ -32,6 +32,10 @@ public class GameModelTest {
         testPausaCongelaSalto();
         testVoltarAoMenuRestauraSalto();
         testCadaSaltoGira90GrausEAterrissaNaNovaOrientacao();
+        testObstaculosMovemComCenario();
+        testColisaoComObstaculoAcabaEmDerrota();
+        testCarregarFaseValidaDoJsonExterno();
+        testJsonInvalidoDeveLancarErro();
 
         System.out.println(">>> [SUCESSO] Todos os testes unitários do GameModel passaram com êxito!");
     }
@@ -275,6 +279,74 @@ public class GameModelTest {
 
         afirmar(Math.abs(model.getRotacaoPersonagem()) < 0.0001,
                 "A volta completa só deve acontecer ao longo de quatro saltos separados.");
+    }
+
+    private static void testObstaculosMovemComCenario() {
+        GameModel model = new GameModel();
+        model.iniciarPartida();
+
+        double xAntes = model.getObstaculos().get(0).getX();
+        model.atualizar(0.1);
+
+        afirmar(Math.abs(model.getObstaculos().get(0).getX() - (xAntes - 18.0)) < 0.0001,
+                "Os obstáculos devem se mover junto com o cenário em velocidade constante.");
+    }
+
+    private static void testColisaoComObstaculoAcabaEmDerrota() {
+        GameModel model = new GameModel();
+        model.iniciarPartida();
+        model.getObstaculos().clear();
+        model.getObstaculos().add(new Obstacle(Obstacle.Tipo.BLOCO, 120, GameModel.POSICAO_CHAO_Y - GameModel.TAMANHO_PERSONAGEM,
+                GameModel.TAMANHO_PERSONAGEM, GameModel.TAMANHO_PERSONAGEM));
+
+        model.atualizar(0.016);
+
+        afirmar(model.getEstadoAtual() == GameState.DERROTA,
+                "Uma colisão entre o personagem e um obstáculo deve encerrar a partida em derrota.");
+    }
+
+    private static void testCarregarFaseValidaDoJsonExterno() {
+        try {
+            java.nio.file.Path arquivo = java.nio.file.Files.createTempFile("fase-valida", ".json");
+            java.nio.file.Files.writeString(arquivo, "{\n"
+                    + "  \"nome\": \"Fase 1\",\n"
+                    + "  \"largura\": 800,\n"
+                    + "  \"altura\": 600,\n"
+                    + "  \"obstaculos\": [\n"
+                    + "    {\"tipo\": \"BLOCO\", \"x\": 520, \"y\": 448, \"largura\": 32, \"altura\": 32},\n"
+                    + "    {\"tipo\": \"ESPINHO\", \"x\": 760, \"y\": 456, \"largura\": 28, \"altura\": 24}\n"
+                    + "  ]\n"
+                    + "}\n");
+
+            Phase fase = PhaseLoader.carregarArquivo(arquivo.toString());
+            afirmar(fase != null, "A fase carregada não pode ser nula.");
+            afirmar(fase.getObstaculos().size() == 2, "A fase deve carregar dois obstáculos válidos.");
+            afirmar(fase.getNome().equals("Fase 1"), "O nome da fase deve ser preservado.");
+            afirmar(fase.getObstaculos().get(0).getTipo() == Obstacle.Tipo.BLOCO,
+                    "O primeiro obstáculo deve manter o tipo BLOCO.");
+        } catch (Exception e) {
+            throw new AssertionError("Falha ao carregar uma fase válida a partir de JSON: " + e.getMessage(), e);
+        }
+    }
+
+    private static void testJsonInvalidoDeveLancarErro() {
+        try {
+            java.nio.file.Path arquivo = java.nio.file.Files.createTempFile("fase-invalida", ".json");
+            java.nio.file.Files.writeString(arquivo, "{\n"
+                    + "  \"nome\": \"Fase invalida\",\n"
+                    + "  \"largura\": 800,\n"
+                    + "  \"obstaculos\": [\n"
+                    + "    {\"tipo\": \"INEXISTENTE\", \"x\": 520, \"y\": 448, \"largura\": 32, \"altura\": 32}\n"
+                    + "  ]\n"
+                    + "}\n");
+
+            PhaseLoader.carregarArquivo(arquivo.toString());
+            throw new AssertionError("JSON inválido deveria ter gerado exceção de validação.");
+        } catch (IllegalArgumentException esperado) {
+            // OK: validação deve rejeitar tipos inválidos.
+        } catch (Exception e) {
+            throw new AssertionError("Tipo de erro inesperado ao validar JSON inválido: " + e.getMessage(), e);
+        }
     }
 
     private static void afirmar(boolean condicao, String mensagemErro) {

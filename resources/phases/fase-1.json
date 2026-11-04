@@ -1,0 +1,10 @@
+{
+  "nome": "Fase 1",
+  "largura": 800,
+  "altura": 600,
+  "obstaculos": [
+    { "tipo": "BLOCO", "x": 520, "y": 448, "largura": 32, "altura": 32 },
+    { "tipo": "ESPINHO", "x": 760, "y": 456, "largura": 28, "altura": 24 },
+    { "tipo": "BLOCO", "x": 1020, "y": 448, "largura": 32, "altura": 32 }
+  ]
+}
