@@ -2,6 +2,7 @@ package geometrydash.view;
 
 import geometrydash.model.GameModel;
 import geometrydash.model.GameState;
+import geometrydash.model.Obstacle;
 
 import javax.swing.JPanel;
 import java.awt.Color;
@@ -63,8 +64,33 @@ public class GamePanel extends JPanel {
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
         desenharCenarioBase(g2d);
+        desenharObstaculos(g2d);
         desenharPersonagem(g2d);
         desenharInterfacePorEstado(g2d);
+    }
+
+    private void desenharObstaculos(Graphics2D g2d) {
+        for (Obstacle obstaculo : model.getObstaculos()) {
+            int x = (int) Math.round(obstaculo.getX());
+            int y = (int) Math.round(obstaculo.getY());
+            int largura = (int) Math.round(obstaculo.getLargura());
+            int altura = (int) Math.round(obstaculo.getAltura());
+
+            if (obstaculo.getTipo() == Obstacle.Tipo.BLOCO) {
+                g2d.setColor(new Color(163, 88, 72));
+                g2d.fillRect(x, y, largura, altura);
+                g2d.setColor(new Color(230, 160, 95));
+                g2d.drawRect(x, y, largura - 1, altura - 1);
+            } else {
+                int[] pontosX = {x, x + largura / 2, x + largura};
+                int[] pontosY = {y + altura, y, y + altura};
+                g2d.setColor(new Color(220, 86, 74));
+                g2d.fillPolygon(pontosX, pontosY, 3);
+                g2d.setColor(new Color(255, 190, 170));
+                g2d.drawLine(x, y + altura, x + largura / 2, y);
+                g2d.drawLine(x + largura / 2, y, x + largura, y + altura);
+            }
+        }
     }
 
     private void desenharCenarioBase(Graphics2D g2d) {
