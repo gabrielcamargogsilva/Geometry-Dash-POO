@@ -20,6 +20,7 @@ public class GameModel {
     public static final double POSICAO_CHAO_Y = 480.0;
     public static final double TAMANHO_PERSONAGEM = 40.0;
     public static final double TAMANHO_CICLO_CENARIO = 40.0;
+    public static final double DURACAO_DICA_INICIAL = 3.0;
 
     private static final double GRAVIDADE = 1800.0;
     private static final double VELOCIDADE_INICIAL_SALTO = -600.0;
@@ -31,6 +32,7 @@ public class GameModel {
 
     private GameState estadoAtual;
     private double tempoDecorrido; // Tempo total em segundos na tentativa atual
+    private double tempoDicaRestante; // Duração da dica inicial ao começar a fase
     private double deslocamentoCenario;
     private double posicaoVerticalPersonagem;
     private double velocidadeVerticalPersonagem;
@@ -43,6 +45,7 @@ public class GameModel {
     public GameModel() {
         this.estadoAtual = GameState.MENU;
         this.tempoDecorrido = 0.0;
+        this.tempoDicaRestante = 0.0;
         this.deslocamentoCenario = 0.0;
         this.posicaoVerticalPersonagem = POSICAO_CHAO_Y - TAMANHO_PERSONAGEM;
         this.velocidadeVerticalPersonagem = 0.0;
@@ -66,7 +69,7 @@ public class GameModel {
      * 
      * Regra do Domínio:
      * A simulação e a contagem de tempo só avançam quando o jogo estiver no estado JOGANDO.
-     * Durante PAUSADO, MENU, DERROTA ou VITORIA, o tempo fica congelado.
+     * Durante PAUSADO, MENU, CONTROLES, CREDITOS, DERROTA ou VITORIA, o tempo fica congelado.
      * 
      * @param deltaTime Intervalo de tempo real em segundos desde a última atualização.
      */
@@ -76,6 +79,12 @@ public class GameModel {
         }
 
         this.tempoDecorrido += deltaTime;
+
+        // Atualiza a contagem regressiva da dica inicial
+        if (this.tempoDicaRestante > 0.0) {
+            this.tempoDicaRestante = Math.max(0.0, this.tempoDicaRestante - deltaTime);
+        }
+
         deslocamentoCenario = (deslocamentoCenario + VELOCIDADE_CENARIO * deltaTime)
                 % TAMANHO_CICLO_CENARIO;
         atualizarObstaculos(deltaTime);
@@ -152,17 +161,26 @@ public class GameModel {
     }
 
     /**
-     * Inicia uma nova partida a partir do Menu, Derrota ou Vitória.
-     * Zera o contador de tempo da tentativa.
+     * Inicia uma nova partida a partir do Menu, Pausa, Derrota ou Vitória.
+     * Zera o contador de tempo da tentativa e ativa a dica inicial por 3 segundos.
      */
     public synchronized void iniciarPartida() {
-        if (estadoAtual == GameState.MENU || estadoAtual == GameState.DERROTA || estadoAtual == GameState.VITORIA) {
+        if (estadoAtual == GameState.MENU || estadoAtual == GameState.PAUSADO 
+                || estadoAtual == GameState.DERROTA || estadoAtual == GameState.VITORIA) {
             this.estadoAtual = GameState.JOGANDO;
             this.tempoDecorrido = 0.0;
+            this.tempoDicaRestante = DURACAO_DICA_INICIAL;
             this.deslocamentoCenario = 0.0;
             inicializarObstaculos();
             reiniciarSalto();
         }
+    }
+
+    /**
+     * Reinicia a partida imediatamente.
+     */
+    public synchronized void reiniciarPartida() {
+        iniciarPartida();
     }
 
     /**
@@ -177,11 +195,30 @@ public class GameModel {
     }
 
     /**
-     * Retorna ao menu principal.
+     * Navega para a tela de Controles a partir do Menu.
+     */
+    public synchronized void abrirControles() {
+        if (this.estadoAtual == GameState.MENU) {
+            this.estadoAtual = GameState.CONTROLES;
+        }
+    }
+
+    /**
+     * Navega para a tela de Créditos a partir do Menu.
+     */
+    public synchronized void abrirCreditos() {
+        if (this.estadoAtual == GameState.MENU) {
+            this.estadoAtual = GameState.CREDITOS;
+        }
+    }
+
+    /**
+     * Retorna ao menu principal a partir de qualquer tela secundária.
      */
     public synchronized void voltarAoMenu() {
         this.estadoAtual = GameState.MENU;
         this.tempoDecorrido = 0.0;
+        this.tempoDicaRestante = 0.0;
         this.deslocamentoCenario = 0.0;
         inicializarObstaculos();
         reiniciarSalto();
@@ -230,6 +267,14 @@ public class GameModel {
 
     public synchronized double getTempoDecorrido() {
         return tempoDecorrido;
+    }
+
+    public synchronized double getTempoDicaRestante() {
+        return tempoDicaRestante;
+    }
+
+    public synchronized boolean isExibindoDica() {
+        return estadoAtual == GameState.JOGANDO && tempoDicaRestante > 0.0;
     }
 
     public synchronized double getDeslocamentoCenario() {
