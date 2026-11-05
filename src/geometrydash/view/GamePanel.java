@@ -342,6 +342,7 @@ public class GamePanel extends JPanel {
         desenharTextoCentralizado(g2d, "Linguagem: Java 17 | Interface: Swing & Graphics2D", 280);
         desenharTextoCentralizado(g2d, "Padrão Arquitetural: Model-View-Controller (MVC)", 315);
         desenharTextoCentralizado(g2d, "Identidade Geométrica 2D Autoral", 350);
+        desenharTextoCentralizado(g2d, "Desenvolvedores: Gabriel Camargo Gonçalves Silva e Guilherme Leite", 385);
 
         btnVoltarCreditos.desenhar(g2d);
     }
