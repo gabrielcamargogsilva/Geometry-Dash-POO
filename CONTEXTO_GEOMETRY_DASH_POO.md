@@ -313,7 +313,7 @@ Ajuste após inspecionar o repositório; não duplique o que já existir.
 - [x] **Etapa 11:** Adicionar áudio local com Java Sound, incluindo música em loop, efeitos e sincronização com estados de pausa, derrota e vitória.
 - [x] **Etapa 12:** Adicionar personalização de cor/expressão e persistência local de perfil e recorde.
 - [x] **Etapa 13:** Testes de regressão automatizados, documentação final e roteiro para apresentação.
-- [ ] **Etapa 14:** Avaliar empacotamento JAR posteriormente.
+- [x] **Etapa 14:** Gerar e validar JAR executável autocontido com fase e áudios no classpath.
 
 ## 13. Testes
 
@@ -551,3 +551,14 @@ O estudante já escolheu Java, Swing, `Graphics2D`, execução local e MVC. Não
   - Testes headless e determinísticos permitem validar regras sem depender de uma janela ou dispositivo de áudio.
   - A documentação de execução torna explícitas a raiz de trabalho, a compilação compatível com Java 17 e as dependências em tempo de execução.
   - A apresentação resume responsabilidades MVC e decisões técnicas em linguagem demonstrável.
+
+### Etapa 14 (05/11/2026) — Empacotamento Executável em JAR
+- **Ações:**
+  - **Build:** Adicionado `scripts/build-jar.ps1`, que compila as classes de produção com `--release 17`, copia os recursos e gera `build/Geometry-Dash-POO.jar` com `geometrydash.Main` como ponto de entrada. O staging temporário é removido ao final; `build/` fica ignorado pelo Git.
+  - **Recursos:** A fase é carregada do classpath quando empacotada e mantém fallback para `resources/` no desenvolvimento. O áudio usa URLs do classpath (suportando JAR) e mantém fallback para os arquivos no projeto.
+  - **Validação:** Adicionado `PackagedResourcesTest` para carregar a fase e validar os cinco WAVs pelo classpath do JAR. A CI agora constrói o JAR e executa essa verificação.
+  - **Distribuição:** README documenta geração e execução com `java -jar`; não há dependências externas. O perfil permanece fora do JAR, no diretório do usuário, para continuar persistente e gravável.
+- **Conceitos de Java e POO abordados:**
+  - `Class.getResource` / `getResourceAsStream` acessam arquivos dentro de um JAR sem extraí-los para o disco.
+  - Manifesto com `Main-Class` permite iniciar a aplicação com `java -jar`.
+  - Recursos imutáveis da aplicação acompanham o executável; dados graváveis do usuário permanecem em armazenamento externo ao artefato.
