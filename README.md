@@ -27,6 +27,7 @@ Desenvolvido para o curso de **Back End — SENAI 2026 (2º Semestre)**.
 * **Model (`geometrydash.model`):**
   * Representa o estado da partida, tempo, cinemática de salto, gravidade, cálculo de colisão e obstáculos.
   * Expõe a coleção de obstáculos como cópia imutável; mudanças no estado do jogo ocorrem por operações de domínio, sem setter genérico de estado.
+  * `Obstacle` abstrai os dados comuns; `BlockObstacle` e `SpikeObstacle` especializam a colisão retangular e triangular, respectivamente.
   * **Regra de ouro:** Nenhuma dependência de bibliotecas de interface gráfica (AWT/Swing). 100% testável via testes unitários em memória.
 * **View (`geometrydash.view`):**
   * Apresentação visual através de `GameWindow` e `GamePanel`.
@@ -36,6 +37,14 @@ Desenvolvido para o curso de **Back End — SENAI 2026 (2º Semestre)**.
   * Orquestra o ciclo contínuo com `GameLoop` (60 FPS com delta time).
   * Escuta eventos de teclado e mouse com `InputController`.
   * Garante que cliques em botões de menu não disparem saltos acidentais no jogo.
+
+## 🧩 Pilares de POO nos Obstáculos
+
+* **Abstração:** [`Obstacle`](./src/geometrydash/model/Obstacle.java) define posição, tamanho, movimento e o contrato de colisão, sem escolher um único formato.
+* **Herança:** [`BlockObstacle`](./src/geometrydash/model/BlockObstacle.java) e [`SpikeObstacle`](./src/geometrydash/model/SpikeObstacle.java) herdam os dados e comportamentos compartilhados.
+* **Polimorfismo:** `GameModel` percorre `List<Obstacle>` e chama `colideComRetangulo`; a implementação concreta é escolhida pelo tipo do objeto, sem condicionais de colisão no Model.
+* **Encapsulamento:** `GameModel.getObstaculos()` retorna uma cópia imutável da lista; `Phase` copia cada item pelo método polimórfico `copiar()`, preservando o subtipo.
+* **Separação MVC:** a View desenha os formatos, e o Model mantém geometria e regras de colisão.
 
 ---
 
@@ -134,3 +143,4 @@ Antes da apresentação, fazer um ensaio com a janela e o áudio no computador q
 - [x] **Etapa 13:** Testes de regressão, documentação final e roteiro de apresentação.
 - [x] **Etapa 14:** Empacotamento executável em JAR autocontido, com fase e áudio incluídos.
 - [x] **Etapa 15:** Proteção do encapsulamento do Model e testes de transição sem setter genérico.
+- [x] **Etapa 16:** Hierarquia de obstáculos com abstração, herança e colisão polimórfica.

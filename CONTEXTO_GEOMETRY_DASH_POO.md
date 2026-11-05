@@ -314,6 +314,8 @@ Ajuste após inspecionar o repositório; não duplique o que já existir.
 - [x] **Etapa 12:** Adicionar personalização de cor/expressão e persistência local de perfil e recorde.
 - [x] **Etapa 13:** Testes de regressão automatizados, documentação final e roteiro para apresentação.
 - [x] **Etapa 14:** Gerar e validar JAR executável autocontido com fase e áudios no classpath.
+- [x] **Etapa 15:** Proteger o encapsulamento da coleção e remover o setter genérico de estado.
+- [x] **Etapa 16:** Criar hierarquia polimórfica de obstáculos sem alterar o JSON ou a separação MVC.
 
 ## 13. Testes
 
@@ -391,7 +393,7 @@ O estudante já escolheu Java, Swing, `Graphics2D`, execução local e MVC. Não
 
 ## 18. Evolução de POO — Encapsulamento, Herança e Polimorfismo
 
-**Status:** Etapa 15 concluída; as etapas 16 e 17 continuam planejadas.
+**Status:** Etapas 15 e 16 concluídas; Etapa 17 planejada.
 **Branch de trabalho:** `refactor/pilares-poo-obstaculos`, criada a partir de `develop`.
 **Objetivo:** tornar os quatro pilares de POO mais claros e demonstráveis no domínio do jogo, corrigindo também pontos de encapsulamento identificados na revisão da branch `develop`.
 
@@ -438,7 +440,7 @@ A meta não é afirmar que os pilares estavam ausentes. É fortalecer sua aplica
 
 **Validação:** compilação Java 17, sete suítes de regressão e o teste de recursos do JAR passaram; a revisão confirmou que não restaram referências a `setEstadoAtual` nem mutações estruturais via `getObstaculos()`.
 
-### 18.3 Etapa 16 — Criar uma hierarquia de obstáculos
+### 18.3 Etapa 16 — Criar uma hierarquia de obstáculos (Concluída)
 
 **Arquivos envolvidos inicialmente:**
 - `src/geometrydash/model/Obstacle.java`
@@ -449,7 +451,7 @@ A meta não é afirmar que os pilares estavam ausentes. É fortalecer sua aplica
 - `src/geometrydash/view/GamePanel.java`
 - testes do Model e da View que utilizem obstáculos.
 
-**Estrutura desejada:**
+**Estrutura implementada:**
 
 ```text
                  Obstacle
@@ -462,15 +464,12 @@ A meta não é afirmar que os pilares estavam ausentes. É fortalecer sua aplica
 
 **Responsabilidades:**
 
-- `Obstacle` será uma classe abstrata com os dados e comportamentos realmente compartilhados: posição, largura, altura, movimento e getters.
-- `Obstacle` declarará `public abstract boolean colideComRetangulo(...)`.
-- `BlockObstacle extends Obstacle` implementará a colisão retangular.
-- `SpikeObstacle extends Obstacle` implementará a colisão triangular já existente, preservando a regra de que tocar a borda também conta como colisão.
-- Cada subclasse implementará uma operação de cópia, por exemplo `public abstract Obstacle copiar()`, para que `Phase` consiga copiar os obstáculos sem perder seu tipo concreto.
-- `GameModel` continuará trabalhando com `List<Obstacle>`. Seu laço de colisão chamará `obstaculo.colideComRetangulo(...)` sem precisar descobrir se o objeto é bloco ou espinho.
-- `Phase` continuará protegendo sua coleção e deverá usar `copiar()` ao copiar os elementos.
-- `PhaseLoader` continuará aceitando no JSON os tipos `BLOCO` e `ESPINHO`, mas criará `BlockObstacle` ou `SpikeObstacle` por meio de uma fábrica simples (método privado/switch). Não adicionar biblioteca externa.
-- Os obstáculos padrão criados em `GameModel` também deverão usar as subclasses concretas.
+- `Obstacle` é uma classe abstrata com posição, dimensões, movimento, getters e o contrato de colisão.
+- `BlockObstacle extends Obstacle` implementa colisão retangular; `SpikeObstacle extends Obstacle` implementa a colisão triangular existente, incluindo contato com as bordas.
+- Cada subtipo implementa `copiar()` e `Phase` usa esse método ao copiar obstáculos, preservando o tipo concreto.
+- `GameModel` percorre `List<Obstacle>` e despacha `colideComRetangulo(...)` sem condicionais por tipo.
+- `PhaseLoader` mantém os tipos JSON `BLOCO`/`ESPINHO` e instancia o subtipo correto por um `switch` privado.
+- Os obstáculos padrão do `GameModel` usam as subclasses concretas. A View continua desenhando através do discriminador `Tipo`; não contém lógica de colisão.
 
 **Regra importante de MVC:** não colocar `Graphics2D`, `Graphics` ou código de desenho em `Obstacle`, `BlockObstacle` ou `SpikeObstacle`. O Model define geometria e colisão; `GamePanel` continua responsável por desenhar. A View pode usar o tipo concreto/um discriminador de apresentação para escolher o desenho, mas não deve executar regras de colisão.
 
@@ -480,7 +479,7 @@ A meta não é afirmar que os pilares estavam ausentes. É fortalecer sua aplica
 {"tipo":"ESPINHO","x":760,"y":456,"largura":28,"altura":24}
 ```
 
-**Testes de aceitação:**
+**Testes de aceitação concluídos:**
 - Bloco colide de acordo com retângulos.
 - Espinho colide de acordo com o triângulo, sem gerar colisão nos cantos vazios da antiga caixa retangular.
 - Contato com a aresta do espinho continua sendo colisão.
@@ -490,11 +489,25 @@ A meta não é afirmar que os pilares estavam ausentes. É fortalecer sua aplica
 - A fase JSON existente continua carregando e sendo concluída como antes.
 - A renderização dos obstáculos permanece na View e os testes de regressão visual continuam passando.
 
+**Validação:** compilação Java 17, sete suítes de regressão, geração do JAR e teste de recursos empacotados passaram. A inspeção confirmou que o JSON existente não mudou, que o Model não importa AWT/Swing e que não há código gráfico nas classes do domínio.
+
 **Conceitos para apresentação:**
 - **Abstração:** `Obstacle` representa o conceito geral de obstáculo, sem definir um algoritmo único de colisão.
 - **Herança:** `BlockObstacle` e `SpikeObstacle` especializam `Obstacle`.
 - **Polimorfismo:** o Model percorre `List<Obstacle>` e chama o mesmo método; a implementação executada depende da classe concreta do objeto.
 - **Sobrescrita:** cada subclasse fornece sua implementação de `colideComRetangulo(...)`.
+
+### Etapa 16 (05/11/2026) — Hierarquia Polimórfica de Obstáculos
+- **Ações:**
+  - **Model:** `Obstacle` tornou-se abstrato; `BlockObstacle` e `SpikeObstacle` especializam colisão retangular e triangular. A representação mantém o enum `Tipo` para que a View continue escolhendo a forma desenhada sem conhecer regras de colisão.
+  - **Cópia e carregamento:** Os subtipos implementam `copiar()`, usado por `Phase` para preservar o tipo concreto. `PhaseLoader` conserva a compatibilidade com o JSON e cria instâncias concretas por `switch`; obstáculos padrão também usam as subclasses.
+  - **Testes:** Confirmados colisão de bloco, canto vazio e borda de espinho, subtipo criado pelo JSON, preservação do subtipo ao copiar fase, conclusão da fase JSON e regressão de renderização.
+  - **Validação:** Passaram compilação Java 17, todas as suítes headless, empacotamento e teste dos recursos dentro do JAR. `GameModel` permanece independente de AWT/Swing.
+- **Conceitos de Java e POO abordados:**
+  - Abstração do contrato comum em uma classe base abstrata.
+  - Herança para especializar comportamento do domínio.
+  - Sobrescrita e despacho dinâmico para selecionar a colisão concreta usando uma referência `Obstacle`.
+  - Cópia polimórfica para preservar o subtipo sem condicionais adicionais.
 
 ### 18.4 Etapa 17 — Reforçar a injeção de dependência do áudio
 
