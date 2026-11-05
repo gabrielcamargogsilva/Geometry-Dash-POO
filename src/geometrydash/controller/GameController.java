@@ -7,6 +7,7 @@ import geometrydash.persistence.ProfileStore;
 import geometrydash.view.GamePanel;
 
 import java.io.IOException;
+import java.util.Objects;
 
 /**
  * Orquestrador principal do jogo (Camada Controller).
@@ -24,12 +25,16 @@ public class GameController {
     private final GameLoop gameLoop;
 
     public GameController(GameModel model, GamePanel view, ProfileStore profileStore) {
-        this.model = model;
-        this.view = view;
-        this.profileStore = profileStore;
-        this.audio = new AudioManager();
-        this.inputController = new InputController(model, view, audio, profileStore);
-        this.gameLoop = new GameLoop(model, view, audio, profileStore);
+        this(model, view, profileStore, new AudioManager());
+    }
+
+    public GameController(GameModel model, GamePanel view, ProfileStore profileStore, AudioService audio) {
+        this.model = Objects.requireNonNull(model, "O modelo do jogo não pode ser nulo.");
+        this.view = Objects.requireNonNull(view, "A view do jogo não pode ser nula.");
+        this.profileStore = Objects.requireNonNull(profileStore, "O armazenamento do perfil não pode ser nulo.");
+        this.audio = Objects.requireNonNull(audio, "O serviço de áudio não pode ser nulo.");
+        this.inputController = new InputController(this.model, this.view, this.audio, this.profileStore);
+        this.gameLoop = new GameLoop(this.model, this.view, this.audio, this.profileStore);
 
         inicializarControles();
         iniciarCiclo();
