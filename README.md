@@ -29,7 +29,7 @@ Desenvolvido para o curso de **Back End — SENAI 2026 (2º Semestre)**.
   * **Regra de ouro:** Nenhuma dependência de bibliotecas de interface gráfica (AWT/Swing). 100% testável via testes unitários em memória.
 * **View (`geometrydash.view`):**
   * Apresentação visual através de `GameWindow` e `GamePanel`.
-  * Desenha cenário, obstáculos, personagem e telas de interface (Menu Principal, Controles, Créditos, Pausa, Derrota e Vitória).
+  * Desenha cenário, obstáculos, personagem e telas de interface (Menu Principal, Controles, Créditos, Personalização, Pausa, Derrota e Vitória).
   * Componentes reutilizáveis como `MenuButton` com efeito hover.
 * **Controller (`geometrydash.controller`):**
   * Orquestra o ciclo contínuo com `GameLoop` (60 FPS com delta time).
@@ -55,9 +55,11 @@ Desenvolvido para o curso de **Back End — SENAI 2026 (2º Semestre)**.
 * Java Development Kit (JDK) 17 ou superior instalado.
 
 ### 1. Compilação
-No terminal (PowerShell no Windows):
+Na raiz do projeto, no PowerShell:
 ```powershell
-javac --release 17 -encoding UTF-8 -d bin (Get-ChildItem -Recurse src/*.java, test/*.java | ForEach-Object { $_.FullName })
+New-Item -ItemType Directory -Force bin | Out-Null
+$javaFiles = Get-ChildItem -Path src,test -Recurse -Filter *.java | ForEach-Object { $_.FullName }
+javac --release 17 -encoding UTF-8 -d bin $javaFiles
 ```
 `--release 17` garante que os `.class` gerados possam ser executados no JDK 17, mesmo que outro JDK mais novo esteja selecionado para compilação.
 
@@ -68,13 +70,19 @@ java -cp bin geometrydash.Main
 
 ### 3. Executar Todos os Testes Automatizados
 ```powershell
-java -cp bin geometrydash.model.GameModelTest
-java -cp bin geometrydash.controller.GameLoopTest
-java -cp bin geometrydash.controller.InputControllerTest
-java -cp bin geometrydash.view.GamePanelTest
-java -cp bin geometrydash.view.component.MenuButtonTest
-java -cp bin geometrydash.audio.AudioAssetsTest
-java -cp bin geometrydash.persistence.ProfileStoreTest
+$testClasses = @(
+    "geometrydash.model.GameModelTest",
+    "geometrydash.controller.GameLoopTest",
+    "geometrydash.controller.InputControllerTest",
+    "geometrydash.view.GamePanelTest",
+    "geometrydash.view.component.MenuButtonTest",
+    "geometrydash.audio.AudioAssetsTest",
+    "geometrydash.persistence.ProfileStoreTest"
+)
+foreach ($testClass in $testClasses) {
+    java -Djava.awt.headless=true -cp bin $testClass
+    if ($LASTEXITCODE -ne 0) { throw "Falha no teste: $testClass" }
+}
 ```
 *(Todos os testes executam de forma headless, sem necessidade de abrir janelas visuais).*
 
@@ -83,6 +91,18 @@ O arquivo `resources/phases/fase-1.json` define a duração espacial da fase pel
 Os arquivos de áudio originais ficam em `resources/audio/`. A música toca em loop durante a partida, pausa/retoma com o jogo e reinicia ao começar outra tentativa. Há efeitos para pulo, colisão, vitória e clique em botões. Se um arquivo ou dispositivo de áudio não estiver disponível, o erro é informado no console e o jogo continua sem aquele áudio.
 
 No menu **Personalizar**, é possível alternar entre quatro cores e três expressões. A escolha e o melhor progresso são salvos em `.geometry-dash-poo.properties` dentro do diretório indicado por `user.home`; o perfil é restaurado ao abrir o jogo. Se o arquivo estiver inválido ou inacessível, a causa é exibida no console e o jogo inicia com os valores padrão.
+
+## 🎤 Roteiro de Apresentação
+
+Uma demonstração de aproximadamente 5 a 7 minutos pode seguir esta ordem:
+
+1. **Objetivo e tecnologias:** apresentar o jogo 2D em Java 17, Swing e `Graphics2D`, sem engine ou dependências externas.
+2. **Arquitetura MVC:** explicar que `GameModel` mantém regras e estado, `GamePanel` desenha o estado e `InputController`/`GameLoop` coordenam entradas e atualização.
+3. **Demonstração:** abrir o jogo a partir da raiz do projeto, mostrar menu e personalização, iniciar uma partida, pular, pausar e demonstrar um resultado.
+4. **Decisões técnicas:** destacar delta time, colisão triangular dos espinhos, fase externa em JSON, dificuldade progressiva, áudio local e perfil persistido.
+5. **Qualidade:** executar a compilação e os sete testes automatizados headless descritos acima; explicar que a CI repete essas verificações no GitHub Actions.
+
+Antes da apresentação, fazer um ensaio com a janela e o áudio no computador que será usado. A execução manual complementa os testes automatizados; não é coberta por eles.
 
 ---
 
@@ -101,5 +121,5 @@ No menu **Personalizar**, é possível alternar entre quatro cores e três expre
 - [x] **Etapa 10:** Progresso percentual, barra de progresso e dificuldade progressiva com conclusão da fase.
 - [x] **Etapa 11:** Efeitos sonoros e música da fase.
 - [x] **Etapa 12:** Personalização de cor/expressão e persistência local do perfil e recorde.
-- [ ] **Etapa 13:** Testes de regressão e documentação final.
+- [x] **Etapa 13:** Testes de regressão, documentação final e roteiro de apresentação.
 - [ ] **Etapa 14:** Empacotamento executável (JAR).
