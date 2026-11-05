@@ -27,7 +27,7 @@ public class Main {
         SwingUtilities.invokeLater(() -> {
             // 1. Model: Estado puro do jogo
             GameModel model = new GameModel();
-            model.carregarFase(PhaseLoader.carregarArquivo("resources/phases/fase-1.json"));
+            model.carregarFase(PhaseLoader.carregarRecurso("/phases/fase-1.json"));
             ProfileStore profileStore = new ProfileStore();
             try {
                 model.aplicarPerfil(profileStore.carregar());
