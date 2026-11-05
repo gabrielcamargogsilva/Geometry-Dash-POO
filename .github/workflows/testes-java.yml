@@ -68,3 +68,27 @@ jobs:
               -cp build/classes \
               "$test_class"
           done
+
+      - name: Empacotar JAR e validar recursos incluídos
+        run: |
+          set -euo pipefail
+
+          mkdir -p build/jar-classes
+          find src -name "*.java" -print > jar-sources.txt
+          javac --release 17 -encoding UTF-8 \
+            -d build/jar-classes \
+            @jar-sources.txt
+          cp -R resources/. build/jar-classes/
+
+          jar --create \
+            --file build/Geometry-Dash-POO.jar \
+            --main-class geometrydash.Main \
+            -C build/jar-classes .
+
+          mkdir -p build/packaged-test
+          (
+            cd build/packaged-test
+            java -Djava.awt.headless=true \
+              -cp "../classes:../Geometry-Dash-POO.jar" \
+              geometrydash.packaging.PackagedResourcesTest
+          )
