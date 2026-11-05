@@ -3,10 +3,15 @@ package geometrydash.controller;
 import geometrydash.audio.AudioService;
 import geometrydash.model.GameModel;
 import geometrydash.model.GameState;
+import geometrydash.model.PersonagemCor;
+import geometrydash.model.PersonagemExpressao;
+import geometrydash.persistence.ProfileStore;
 import geometrydash.view.GamePanel;
 
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 /**
  * Verifica os comandos de iniciar a partida, pular por teclado ou mouse,
@@ -14,11 +19,14 @@ import java.awt.event.MouseEvent;
  */
 public class InputControllerTest {
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
         GameModel model = new GameModel();
         GamePanel view = new GamePanel(model);
         AudioFake audio = new AudioFake();
-        InputController controller = new InputController(model, view, audio);
+        Path diretorioPerfil = Files.createTempDirectory("geometrydash-input-test");
+        Path caminhoPerfil = diretorioPerfil.resolve("perfil.properties");
+        ProfileStore profileStore = new ProfileStore(caminhoPerfil);
+        InputController controller = new InputController(model, view, audio, profileStore);
 
         // 1. Clique fora de botões no menu não deve iniciar nem pular
         pressionarMouseEm(controller, view, 10, 10);
@@ -70,7 +78,32 @@ public class InputControllerTest {
         afirmar(model.getEstadoAtual() == GameState.MENU,
                 "Clique no botão Voltar deve retornar ao menu principal.");
 
-        // 7. Teste de botões na tela de Pausa
+        // 7. Personalização e salvamento das opções
+        int btnPersonalizarX = view.getBtnPersonalizar().getX() + 10;
+        int btnPersonalizarY = view.getBtnPersonalizar().getY() + 10;
+        pressionarMouseEm(controller, view, btnPersonalizarX, btnPersonalizarY);
+        afirmar(model.getEstadoAtual() == GameState.PERSONALIZACAO,
+                "O botão Personalizar deve abrir a tela de personalização.");
+
+        pressionarMouseEm(controller, view,
+                view.getBtnPersonalizacaoCor().getX() + 10, view.getBtnPersonalizacaoCor().getY() + 10);
+        pressionarMouseEm(controller, view,
+                view.getBtnPersonalizacaoExpressao().getX() + 10,
+                view.getBtnPersonalizacaoExpressao().getY() + 10);
+        afirmar(model.getPersonagemCor() == PersonagemCor.LARANJA
+                        && model.getPersonagemExpressao() == PersonagemExpressao.FELIZ,
+                "Os botões devem atualizar a cor e a expressão do personagem.");
+        afirmar(profileStore.carregar().cor() == PersonagemCor.LARANJA
+                        && profileStore.carregar().expressao() == PersonagemExpressao.FELIZ,
+                "As opções escolhidas devem ser salvas no perfil local.");
+
+        pressionarMouseEm(controller, view,
+                view.getBtnVoltarPersonalizacao().getX() + 10,
+                view.getBtnVoltarPersonalizacao().getY() + 10);
+        afirmar(model.getEstadoAtual() == GameState.MENU,
+                "O botão Voltar da personalização deve retornar ao menu.");
+
+        // 8. Teste de botões na tela de Pausa
         model.iniciarPartida();
         model.alternarPausa();
         afirmar(model.getEstadoAtual() == GameState.PAUSADO, "Deve estar pausado.");
@@ -83,7 +116,7 @@ public class InputControllerTest {
         afirmar(model.isPersonagemNoChao(),
                 "Clique em Continuar na pausa NÃO pode disparar o salto.");
 
-        // 8. Teste de botões na tela de Derrota
+        // 9. Teste de botões na tela de Derrota
         model.setEstadoAtual(GameState.DERROTA);
         int btnTentarX = view.getBtnDerrotaTentar().getX() + 10;
         int btnTentarY = view.getBtnDerrotaTentar().getY() + 10;
@@ -94,6 +127,8 @@ public class InputControllerTest {
                 "Clique em Tentar Novamente NÃO pode disparar o salto.");
 
         System.out.println(">>> [SUCESSO] Os comandos de iniciar e pular foram encaminhados corretamente.");
+        Files.deleteIfExists(caminhoPerfil);
+        Files.deleteIfExists(diretorioPerfil);
     }
 
     private static void pressionarMouseEm(InputController controller, GamePanel view, int x, int y) {

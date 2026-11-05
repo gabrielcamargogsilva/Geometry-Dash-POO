@@ -48,6 +48,8 @@ public class GameModelTest {
         testCarregarFasePrincipalDoProjeto();
         testJsonInvalidoDeveLancarErro();
         testTransicaoParaControlesECreditos();
+        testPersonalizacaoEAparenciaDoPerfil();
+        testRecordeMantemOMaiorProgresso();
         testDicaInicialAoIniciarPartida();
         testReiniciarPartidaAPartirDeDerrota();
 
@@ -509,6 +511,47 @@ public class GameModelTest {
 
         model.voltarAoMenu();
         afirmar(model.getEstadoAtual() == GameState.MENU, "Deve voltar para MENU.");
+    }
+
+    private static void testPersonalizacaoEAparenciaDoPerfil() {
+        GameModel model = new GameModel();
+        afirmar(model.getPersonagemCor() == PersonagemCor.TURQUESA,
+                "A cor padrão do personagem deve ser turquesa.");
+        afirmar(model.getPersonagemExpressao() == PersonagemExpressao.CLASSICA,
+                "A expressão padrão do personagem deve ser clássica.");
+
+        model.avancarCorPersonagem();
+        afirmar(model.getPersonagemCor() == PersonagemCor.TURQUESA,
+                "A personalização não deve mudar fora da tela PERSONALIZACAO.");
+        model.abrirPersonalizacao();
+        model.avancarCorPersonagem();
+        model.avancarExpressaoPersonagem();
+        afirmar(model.getPersonagemCor() == PersonagemCor.LARANJA,
+                "A opção de cor deve avançar na tela de personalização.");
+        afirmar(model.getPersonagemExpressao() == PersonagemExpressao.FELIZ,
+                "A expressão deve avançar na tela de personalização.");
+
+        PlayerProfile perfil = model.getPerfil();
+        GameModel outroModel = new GameModel();
+        outroModel.aplicarPerfil(perfil);
+        afirmar(outroModel.getPersonagemCor() == PersonagemCor.LARANJA
+                        && outroModel.getPersonagemExpressao() == PersonagemExpressao.FELIZ,
+                "Aplicar um perfil deve restaurar a cor e a expressão escolhidas.");
+    }
+
+    private static void testRecordeMantemOMaiorProgresso() {
+        GameModel model = new GameModel();
+        model.carregarFase(new Phase("Recorde", 800, 600, 1000, java.util.List.of()));
+        model.iniciarPartida();
+        model.atualizar(1.0);
+        double primeiroRecorde = model.getRecordePercentual();
+
+        model.alternarPausa();
+        model.reiniciarPartida();
+        model.atualizar(0.1);
+
+        afirmar(primeiroRecorde > 0.0 && model.getRecordePercentual() == primeiroRecorde,
+                "Um progresso inferior em uma nova tentativa não pode substituir o recorde.");
     }
 
     private static void testDicaInicialAoIniciarPartida() {
