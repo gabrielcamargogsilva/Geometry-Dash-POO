@@ -1,6 +1,7 @@
 package geometrydash.view;
 
 import geometrydash.model.GameModel;
+import geometrydash.model.Phase;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
@@ -24,6 +25,7 @@ public class GamePanelTest {
 
         afirmarCor(imagemEmMovimento, 10, 0, new Color(17, 24, 43), "fundo");
         afirmarCor(imagemEmMovimento, 10, 500, new Color(29, 38, 57), "chão");
+        testBarraDeProgresso();
         int[] limitesPersonagemNoChao = limitesDaCor(imagemInicial, new Color(45, 218, 204));
         if (limitesPersonagemNoChao[0] != 121 || limitesPersonagemNoChao[1] != 441
                 || limitesPersonagemNoChao[2] != 158 || limitesPersonagemNoChao[3] != 478) {
@@ -59,6 +61,24 @@ public class GamePanelTest {
         }
 
         System.out.println(">>> [SUCESSO] A cena, o cenário móvel e o giro de 90 graus por salto foram renderizados corretamente.");
+    }
+
+    private static void testBarraDeProgresso() {
+        GameModel model = new GameModel();
+        model.carregarFase(new Phase("Progresso", 800, 600, 360, java.util.List.of()));
+        model.iniciarPartida();
+        GamePanel painel = new GamePanel(model);
+        painel.setSize(GamePanel.LARGURA, GamePanel.ALTURA);
+
+        BufferedImage imagemInicial = renderizar(painel);
+        model.atualizar(0.5);
+        BufferedImage imagemComProgresso = renderizar(painel);
+
+        Color corPreenchimento = new Color(91, 244, 224);
+        if (imagemInicial.getRGB(300, 24) == corPreenchimento.getRGB()
+                || imagemComProgresso.getRGB(300, 24) != corPreenchimento.getRGB()) {
+            throw new AssertionError("A barra deve preencher visualmente conforme o progresso da fase.");
+        }
     }
 
     private static BufferedImage renderizar(GamePanel painel) {

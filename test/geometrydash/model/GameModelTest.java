@@ -1,5 +1,7 @@
 package geometrydash.model;
 
+import java.util.List;
+
 /**
  * Testes unitários para a camada Model (GameModel, GameState e Lógica Temporal).
  * 
@@ -24,6 +26,10 @@ public class GameModelTest {
         testCenarioCongelaNaPausa();
         testCenarioReiniciaComNovaPartida();
         testDeslocamentoCenarioPermaneceNoCicloVisual();
+        testProgressoAvancaComDistanciaPercorrida();
+        testVelocidadeAumentaAteOLimite();
+        testProgressoCongelaNaPausa();
+        testConclusaoDaFaseDefineProgressoCompleto();
         testPersonagemComecaNoChao();
         testPuloSoPodeComecarDurantePartida();
         testSaltoAvancaComGravidade();
@@ -33,8 +39,13 @@ public class GameModelTest {
         testVoltarAoMenuRestauraSalto();
         testCadaSaltoGira90GrausEAterrissaNaNovaOrientacao();
         testObstaculosMovemComCenario();
+        testObstaculosRestauradosNaNovaTentativa();
+        testEspinhoSoColideNaAreaTriangular();
+        testContatoComArestaDoEspinhoContaComoColisao();
+        testFasePrincipalPodeSerConcluidaComSaltosSeparados();
         testColisaoComObstaculoAcabaEmDerrota();
         testCarregarFaseValidaDoJsonExterno();
+        testCarregarFasePrincipalDoProjeto();
         testJsonInvalidoDeveLancarErro();
         testTransicaoParaControlesECreditos();
         testDicaInicialAoIniciarPartida();
@@ -118,8 +129,8 @@ public class GameModelTest {
         model.iniciarPartida();
         model.atualizar(0.1);
 
-        afirmar(Math.abs(model.getDeslocamentoCenario() - 18.0) < 0.0001,
-                "Em 0.1s, o cenário deve se deslocar 18 pixels a 180 pixels por segundo.");
+        afirmar(Math.abs(model.getDeslocamentoCenario() - 18.06) < 0.0001,
+                "Em 0.1s, o cenário deve avançar considerando a aceleração progressiva.");
     }
 
     private static void testCenarioCongelaNaPausa() {
@@ -129,7 +140,7 @@ public class GameModelTest {
         model.alternarPausa();
         model.atualizar(0.5);
 
-        afirmar(Math.abs(model.getDeslocamentoCenario() - 18.0) < 0.0001,
+        afirmar(Math.abs(model.getDeslocamentoCenario() - 18.06) < 0.0001,
                 "Durante a pausa, o cenário deve permanecer parado.");
     }
 
@@ -152,6 +163,61 @@ public class GameModelTest {
         afirmar(model.getDeslocamentoCenario() >= 0.0
                         && model.getDeslocamentoCenario() < GameModel.TAMANHO_CICLO_CENARIO,
                 "O deslocamento deve permanecer limitado ao ciclo visual do piso.");
+    }
+
+    private static void testProgressoAvancaComDistanciaPercorrida() {
+        GameModel model = new GameModel();
+        model.carregarFase(new Phase("Progresso", 800, 600, 1000, java.util.List.of()));
+        model.iniciarPartida();
+        model.atualizar(0.5);
+
+        afirmar(Math.abs(model.getDistanciaPercorrida() - 91.5) < 0.0001,
+                "A distância deve usar a velocidade média durante a aceleração.");
+        afirmar(Math.abs(model.getProgressoPercentual() - 9.15) < 0.0001,
+                "O percentual deve corresponder à distância percorrida sobre o comprimento da fase.");
+    }
+
+    private static void testVelocidadeAumentaAteOLimite() {
+        GameModel model = new GameModel();
+        model.carregarFase(new Phase("Velocidade", 800, 600, 50000, java.util.List.of()));
+        model.iniciarPartida();
+        model.atualizar(5.0);
+
+        afirmar(Math.abs(model.getVelocidadeCenario() - 240.0) < 0.0001,
+                "A velocidade deve aumentar gradualmente em 12 pixels por segundo a cada segundo.");
+
+        model.atualizar(5.0);
+        afirmar(model.getVelocidadeCenario() == GameModel.VELOCIDADE_MAXIMA_CENARIO,
+                "A velocidade deve atingir o limite após dez segundos.");
+
+        model.atualizar(2.0);
+        afirmar(model.getVelocidadeCenario() == GameModel.VELOCIDADE_MAXIMA_CENARIO,
+                "A velocidade não pode ultrapassar o limite máximo.");
+    }
+
+    private static void testProgressoCongelaNaPausa() {
+        GameModel model = new GameModel();
+        model.iniciarPartida();
+        model.atualizar(0.1);
+        double progressoAntesDaPausa = model.getProgressoPercentual();
+
+        model.alternarPausa();
+        model.atualizar(0.5);
+
+        afirmar(model.getProgressoPercentual() == progressoAntesDaPausa,
+                "O progresso deve permanecer congelado durante a pausa.");
+    }
+
+    private static void testConclusaoDaFaseDefineProgressoCompleto() {
+        GameModel model = new GameModel();
+        model.carregarFase(new Phase("Fase curta", 800, 600, 100, java.util.List.of()));
+        model.iniciarPartida();
+        model.atualizar(0.6);
+
+        afirmar(model.getEstadoAtual() == GameState.VITORIA,
+                "A fase deve terminar em vitória ao alcançar seu comprimento total.");
+        afirmar(model.getDistanciaPercorrida() == 100.0 && model.getProgressoPercentual() == 100.0,
+                "A distância e o progresso devem ser limitados ao fim da fase.");
     }
 
     private static void testPersonagemComecaNoChao() {
@@ -246,6 +312,7 @@ public class GameModelTest {
 
     private static void testCadaSaltoGira90GrausEAterrissaNaNovaOrientacao() {
         GameModel model = new GameModel();
+        model.carregarFase(new Phase("Saltos", 800, 600, 5000, java.util.List.of()));
         model.iniciarPartida();
         double intervaloDeAtualizacao = 1.0 / 6.0;
         double[] orientacoesAposCadaSalto = {
@@ -291,8 +358,65 @@ public class GameModelTest {
         double xAntes = model.getObstaculos().get(0).getX();
         model.atualizar(0.1);
 
-        afirmar(Math.abs(model.getObstaculos().get(0).getX() - (xAntes - 18.0)) < 0.0001,
-                "Os obstáculos devem se mover junto com o cenário em velocidade constante.");
+        afirmar(Math.abs(model.getObstaculos().get(0).getX() - (xAntes - 18.06)) < 0.0001,
+                "Os obstáculos devem se mover junto com o cenário acelerado.");
+    }
+
+    private static void testObstaculosRestauradosNaNovaTentativa() {
+        GameModel model = new GameModel();
+        model.iniciarPartida();
+        model.atualizar(0.1);
+        model.voltarAoMenu();
+        model.iniciarPartida();
+
+        afirmar(Math.abs(model.getObstaculos().get(0).getX() - 520.0) < 0.0001,
+                "Uma nova tentativa deve restaurar as posições iniciais dos obstáculos.");
+    }
+
+    private static void testEspinhoSoColideNaAreaTriangular() {
+        Obstacle espinho = new Obstacle(Obstacle.Tipo.ESPINHO, 100.0, 100.0, 40.0, 40.0);
+
+        afirmar(!espinho.colideComRetangulo(101.0, 101.0, 5.0, 5.0),
+                "A área vazia no canto da hitbox retangular do espinho não deve causar derrota.");
+        afirmar(espinho.colideComRetangulo(115.0, 115.0, 10.0, 10.0),
+                "Uma hitbox que intersecta o interior do triângulo deve colidir.");
+    }
+
+    private static void testContatoComArestaDoEspinhoContaComoColisao() {
+        Obstacle espinho = new Obstacle(Obstacle.Tipo.ESPINHO, 100.0, 100.0, 40.0, 40.0);
+
+        afirmar(espinho.colideComRetangulo(100.0, 110.0, 10.0, 10.0),
+                "Tocar exatamente a aresta inclinada do triângulo deve contar como colisão.");
+    }
+
+    private static void testFasePrincipalPodeSerConcluidaComSaltosSeparados() {
+        GameModel model = new GameModel();
+        model.carregarFase(PhaseLoader.carregarArquivo("resources/phases/fase-1.json"));
+        model.iniciarPartida();
+
+        double deltaTime = 1.0 / 60.0;
+        int atualizacoes = 0;
+        while (model.getEstadoAtual() == GameState.JOGANDO && atualizacoes < 3000) {
+            if (model.isPersonagemNoChao()) {
+                Obstacle proximoObstaculo = null;
+                for (Obstacle obstaculo : model.getObstaculos()) {
+                    if (obstaculo.getX() > 160.0
+                            && (proximoObstaculo == null || obstaculo.getX() < proximoObstaculo.getX())) {
+                        proximoObstaculo = obstaculo;
+                    }
+                }
+
+                if (proximoObstaculo != null && proximoObstaculo.getX() <= 205.0) {
+                    model.pular();
+                }
+            }
+
+            model.atualizar(deltaTime);
+            atualizacoes++;
+        }
+
+        afirmar(model.getEstadoAtual() == GameState.VITORIA,
+                "A fase deve ser possível de concluir pulando cada obstáculo separadamente.");
     }
 
     private static void testColisaoComObstaculoAcabaEmDerrota() {
@@ -315,6 +439,7 @@ public class GameModelTest {
                     + "  \"nome\": \"Fase 1\",\n"
                     + "  \"largura\": 800,\n"
                     + "  \"altura\": 600,\n"
+                    + "  \"comprimento\": 1200,\n"
                     + "  \"obstaculos\": [\n"
                     + "    {\"tipo\": \"BLOCO\", \"x\": 520, \"y\": 448, \"largura\": 32, \"altura\": 32},\n"
                     + "    {\"tipo\": \"ESPINHO\", \"x\": 760, \"y\": 456, \"largura\": 28, \"altura\": 24}\n"
@@ -325,6 +450,7 @@ public class GameModelTest {
             afirmar(fase != null, "A fase carregada não pode ser nula.");
             afirmar(fase.getObstaculos().size() == 2, "A fase deve carregar dois obstáculos válidos.");
             afirmar(fase.getNome().equals("Fase 1"), "O nome da fase deve ser preservado.");
+            afirmar(fase.getComprimento() == 1200, "O comprimento da fase deve ser carregado do JSON.");
             afirmar(fase.getObstaculos().get(0).getTipo() == Obstacle.Tipo.BLOCO,
                     "O primeiro obstáculo deve manter o tipo BLOCO.");
         } catch (Exception e) {
@@ -338,6 +464,8 @@ public class GameModelTest {
             java.nio.file.Files.writeString(arquivo, "{\n"
                     + "  \"nome\": \"Fase invalida\",\n"
                     + "  \"largura\": 800,\n"
+                    + "  \"altura\": 600,\n"
+                    + "  \"comprimento\": 1200,\n"
                     + "  \"obstaculos\": [\n"
                     + "    {\"tipo\": \"INEXISTENTE\", \"x\": 520, \"y\": 448, \"largura\": 32, \"altura\": 32}\n"
                     + "  ]\n"
@@ -349,6 +477,22 @@ public class GameModelTest {
             // OK: validação deve rejeitar tipos inválidos.
         } catch (Exception e) {
             throw new AssertionError("Tipo de erro inesperado ao validar JSON inválido: " + e.getMessage(), e);
+        }
+    }
+
+    private static void testCarregarFasePrincipalDoProjeto() {
+        Phase fase = PhaseLoader.carregarArquivo("resources/phases/fase-1.json");
+        afirmar(fase.getComprimento() == 5000,
+                "A fase principal deve expor o comprimento configurado no arquivo JSON.");
+        afirmar(fase.getObstaculos().size() == 15,
+                "A fase principal deve carregar todas as sequências de obstáculos.");
+
+        List<Obstacle> obstaculos = fase.getObstaculos();
+        for (int i = 1; i < obstaculos.size(); i++) {
+            double distanciaEntreObstaculos = obstaculos.get(i).getX()
+                    - obstaculos.get(i - 1).getX();
+            afirmar(distanciaEntreObstaculos >= 300.0,
+                    "A fase deve dar espaço para aterrissar e preparar o próximo salto.");
         }
     }
 
@@ -369,6 +513,7 @@ public class GameModelTest {
 
     private static void testDicaInicialAoIniciarPartida() {
         GameModel model = new GameModel();
+        model.carregarFase(new Phase("Dica", 800, 600, 5000, java.util.List.of()));
         model.iniciarPartida();
         afirmar(model.isExibindoDica(), "A dica deve estar ativa logo após o início da partida.");
 
