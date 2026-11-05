@@ -21,8 +21,7 @@ public class Phase {
     private List<Obstacle> copiarObstaculos(List<Obstacle> obstaculosOriginais) {
         List<Obstacle> copia = new ArrayList<>();
         for (Obstacle obstaculo : obstaculosOriginais) {
-            copia.add(new Obstacle(obstaculo.getTipo(), obstaculo.getX(), obstaculo.getY(),
-                    obstaculo.getLargura(), obstaculo.getAltura()));
+            copia.add(obstaculo.copiar());
         }
         return copia;
     }

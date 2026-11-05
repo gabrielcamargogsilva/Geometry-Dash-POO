@@ -87,10 +87,18 @@ public class PhaseLoader {
                 throw new IllegalArgumentException("O obstáculo excede o comprimento da fase.");
             }
 
-            obstaculos.add(new Obstacle(tipo, x, y, larguraObstaculo, alturaObstaculo));
+            obstaculos.add(criarObstaculo(tipo, x, y, larguraObstaculo, alturaObstaculo));
         }
 
         return new Phase(nome, largura, altura, comprimento, obstaculos);
+    }
+
+    private static Obstacle criarObstaculo(
+            Obstacle.Tipo tipo, double x, double y, double largura, double altura) {
+        return switch (tipo) {
+            case BLOCO -> new BlockObstacle(x, y, largura, altura);
+            case ESPINHO -> new SpikeObstacle(x, y, largura, altura);
+        };
     }
 
     @SuppressWarnings("unchecked")
