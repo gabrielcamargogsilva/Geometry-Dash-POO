@@ -39,6 +39,7 @@ public class PhaseLoader {
         String nome = exigirTexto(mapa, "nome");
         int largura = exigirInteiro(mapa, "largura", 1, 4096);
         int altura = exigirInteiro(mapa, "altura", 1, 4096);
+        int comprimento = exigirInteiro(mapa, "comprimento", 1, 100000);
 
         Object obstaculosObjeto = mapa.get("obstaculos");
         if (!(obstaculosObjeto instanceof List<?> obstaculosLista)) {
@@ -68,11 +69,14 @@ public class PhaseLoader {
             double y = exigirNumero(obstaculoMapa, "y", 0.0, 10000.0);
             double larguraObstaculo = exigirNumero(obstaculoMapa, "largura", 1.0, 500.0);
             double alturaObstaculo = exigirNumero(obstaculoMapa, "altura", 1.0, 500.0);
+            if (x + larguraObstaculo > comprimento) {
+                throw new IllegalArgumentException("O obstáculo excede o comprimento da fase.");
+            }
 
             obstaculos.add(new Obstacle(tipo, x, y, larguraObstaculo, alturaObstaculo));
         }
 
-        return new Phase(nome, largura, altura, obstaculos);
+        return new Phase(nome, largura, altura, comprimento, obstaculos);
     }
 
     @SuppressWarnings("unchecked")

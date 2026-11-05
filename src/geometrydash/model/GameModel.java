@@ -21,10 +21,12 @@ public class GameModel {
     public static final double TAMANHO_PERSONAGEM = 40.0;
     public static final double TAMANHO_CICLO_CENARIO = 40.0;
     public static final double DURACAO_DICA_INICIAL = 3.0;
+    public static final double VELOCIDADE_INICIAL_CENARIO = 180.0;
+    public static final double ACELERACAO_CENARIO = 12.0;
+    public static final double VELOCIDADE_MAXIMA_CENARIO = 300.0;
 
     private static final double GRAVIDADE = 1800.0;
     private static final double VELOCIDADE_INICIAL_SALTO = -600.0;
-    private static final double VELOCIDADE_CENARIO = 180.0;
     private static final double ROTACAO_POR_SALTO = Math.PI / 2.0;
     private static final double DURACAO_VOO = -2.0 * VELOCIDADE_INICIAL_SALTO / GRAVIDADE;
     private static final double VELOCIDADE_ROTACAO = ROTACAO_POR_SALTO / DURACAO_VOO;
@@ -41,6 +43,8 @@ public class GameModel {
     private double tempoNoAr;
     private boolean personagemNoChao;
     private final List<Obstacle> obstaculos;
+    private Phase faseAtual;
+    private double distanciaPercorrida;
 
     public GameModel() {
         this.estadoAtual = GameState.MENU;
@@ -54,14 +58,27 @@ public class GameModel {
         this.tempoNoAr = 0.0;
         this.personagemNoChao = true;
         this.obstaculos = new ArrayList<>();
+        this.faseAtual = new Phase("Fase padrão", 800, 600, 1400, criarObstaculosPadrao());
+        this.distanciaPercorrida = 0.0;
         inicializarObstaculos();
+    }
+
+    private static List<Obstacle> criarObstaculosPadrao() {
+        List<Obstacle> obstaculosPadrao = new ArrayList<>();
+        obstaculosPadrao.add(new Obstacle(Obstacle.Tipo.BLOCO, 520.0, POSICAO_CHAO_Y - 32.0, 32.0, 32.0));
+        obstaculosPadrao.add(new Obstacle(Obstacle.Tipo.ESPINHO, 760.0, POSICAO_CHAO_Y - 24.0, 28.0, 24.0));
+        obstaculosPadrao.add(new Obstacle(Obstacle.Tipo.BLOCO, 1020.0, POSICAO_CHAO_Y - 32.0, 32.0, 32.0));
+        return obstaculosPadrao;
     }
 
     private void inicializarObstaculos() {
         obstaculos.clear();
-        obstaculos.add(new Obstacle(Obstacle.Tipo.BLOCO, 520.0, POSICAO_CHAO_Y - 32.0, 32.0, 32.0));
-        obstaculos.add(new Obstacle(Obstacle.Tipo.ESPINHO, 760.0, POSICAO_CHAO_Y - 24.0, 28.0, 24.0));
-        obstaculos.add(new Obstacle(Obstacle.Tipo.BLOCO, 1020.0, POSICAO_CHAO_Y - 32.0, 32.0, 32.0));
+        obstaculos.addAll(faseAtual.getObstaculos());
+    }
+
+    private double calcularVelocidade(double tempo) {
+        return Math.min(VELOCIDADE_INICIAL_CENARIO + ACELERACAO_CENARIO * tempo,
+                VELOCIDADE_MAXIMA_CENARIO);
     }
 
     /**
@@ -78,6 +95,11 @@ public class GameModel {
             return;
         }
 
+        double velocidadeInicial = calcularVelocidade(tempoDecorrido);
+        double velocidadeFinal = calcularVelocidade(tempoDecorrido + deltaTime);
+        double deslocamento = (velocidadeInicial + velocidadeFinal) * 0.5 * deltaTime;
+        double deslocamentoRestante = faseAtual.getComprimento() - distanciaPercorrida;
+        double deslocamentoAplicado = Math.min(deslocamento, deslocamentoRestante);
         this.tempoDecorrido += deltaTime;
 
         // Atualiza a contagem regressiva da dica inicial
@@ -85,38 +107,25 @@ public class GameModel {
             this.tempoDicaRestante = Math.max(0.0, this.tempoDicaRestante - deltaTime);
         }
 
-        deslocamentoCenario = (deslocamentoCenario + VELOCIDADE_CENARIO * deltaTime)
+        distanciaPercorrida += deslocamentoAplicado;
+        deslocamentoCenario = (deslocamentoCenario + deslocamentoAplicado)
                 % TAMANHO_CICLO_CENARIO;
-        atualizarObstaculos(deltaTime);
+        atualizarObstaculos(deslocamentoAplicado);
 
         if (!personagemNoChao) {
             atualizarSalto(deltaTime);
         }
 
         verificarColisao();
+        if (estadoAtual == GameState.JOGANDO && distanciaPercorrida >= faseAtual.getComprimento()) {
+            estadoAtual = GameState.VITORIA;
+        }
     }
 
-    private void atualizarObstaculos(double deltaTime) {
-        double deslocamento = VELOCIDADE_CENARIO * deltaTime;
-
+    private void atualizarObstaculos(double deslocamento) {
         for (Obstacle obstaculo : obstaculos) {
             obstaculo.mover(-deslocamento);
-            if (obstaculo.getX() + obstaculo.getLargura() < -20.0) {
-                reposicionarObstaculo(obstaculo);
-            }
         }
-    }
-
-    private void reposicionarObstaculo(Obstacle obstaculo) {
-        double maiorX = -Double.MAX_VALUE;
-        for (Obstacle outro : obstaculos) {
-            if (outro != obstaculo && outro.getX() > maiorX) {
-                maiorX = outro.getX();
-            }
-        }
-
-        double novaPosicao = maiorX == -Double.MAX_VALUE ? 800.0 : maiorX + 180.0;
-        obstaculo.setX(novaPosicao);
     }
 
     private void verificarColisao() {
@@ -170,6 +179,7 @@ public class GameModel {
             this.estadoAtual = GameState.JOGANDO;
             this.tempoDecorrido = 0.0;
             this.tempoDicaRestante = DURACAO_DICA_INICIAL;
+            this.distanciaPercorrida = 0.0;
             this.deslocamentoCenario = 0.0;
             inicializarObstaculos();
             reiniciarSalto();
@@ -219,6 +229,7 @@ public class GameModel {
         this.estadoAtual = GameState.MENU;
         this.tempoDecorrido = 0.0;
         this.tempoDicaRestante = 0.0;
+        this.distanciaPercorrida = 0.0;
         this.deslocamentoCenario = 0.0;
         inicializarObstaculos();
         reiniciarSalto();
@@ -238,11 +249,14 @@ public class GameModel {
             throw new IllegalArgumentException("A fase carregada não pode ser nula.");
         }
 
+        this.faseAtual = fase;
+        this.distanciaPercorrida = 0.0;
         this.obstaculos.clear();
         this.obstaculos.addAll(fase.getObstaculos());
-        if (this.estadoAtual == GameState.MENU || this.estadoAtual == GameState.PAUSADO) {
-            this.deslocamentoCenario = 0.0;
-        }
+        this.tempoDecorrido = 0.0;
+        this.tempoDicaRestante = 0.0;
+        this.deslocamentoCenario = 0.0;
+        reiniciarSalto();
     }
 
     public synchronized boolean pular() {
@@ -279,6 +293,18 @@ public class GameModel {
 
     public synchronized double getDeslocamentoCenario() {
         return deslocamentoCenario;
+    }
+
+    public synchronized double getDistanciaPercorrida() {
+        return distanciaPercorrida;
+    }
+
+    public synchronized double getProgressoPercentual() {
+        return Math.min(100.0, distanciaPercorrida / faseAtual.getComprimento() * 100.0);
+    }
+
+    public synchronized double getVelocidadeCenario() {
+        return calcularVelocidade(tempoDecorrido);
     }
 
     public synchronized double getPosicaoVerticalPersonagem() {

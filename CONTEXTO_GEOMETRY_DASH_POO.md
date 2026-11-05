@@ -175,7 +175,7 @@ Menus controlados pelo mouse. Ao clicar em Jogar, a fase começa imediatamente, 
 - Tipos iniciais de obstáculos: espinhos triangulares e blocos.
 
 ### Colisões
-- Hitboxes retangulares menores que os desenhos, para colisões mais tolerantes.
+- Personagem com hitbox retangular; blocos usam hitbox retangular e espinhos usam a forma triangular correspondente ao desenho. Tocar a borda do triângulo também conta como colisão.
 - Qualquer colisão com hitbox definida causa derrota.
 - Método final de detecção ainda não decidido:
   1. Verificar sobreposição das hitboxes em cada atualização.
@@ -285,7 +285,7 @@ Elementos geométricos podem ser desenhados com `Graphics2D`. Formatos definitiv
 
 ### Decisões em aberto (a definir conforme necessidade):
 - Dimensões finais do personagem e do chão (baseline visual definido na etapa 4: personagem 40x40 em x=120, chão em y=480; validar com a física).
-- Valores finais de velocidade e aceleração do percurso (a etapa 5 usa 180 px/s como velocidade inicial fixa e reversível do cenário).
+- Velocidade e aceleração do percurso (baseline adotado na etapa 10: 180 px/s inicial, aceleração de 12 px/s² e limite de 300 px/s; calibragem ainda pode ser feita com a jogabilidade).
 - Valores finais da física do salto (baseline da etapa 6: gravidade 1800 px/s² e velocidade inicial -600 px/s; validar/calibrar com obstáculos).
 - Duração da dica.
 - Esquema JSON e biblioteca/estratégia de leitura.
@@ -306,10 +306,10 @@ Ajuste após inspecionar o repositório; não duplique o que já existir.
 - [x] **Etapa 4:** Desenhar fundo, chão e personagem. *(Concluída)*
 - [x] **Etapa 5:** Implementar movimento automático do cenário. *(Concluída)*
 - [x] **Etapa 6:** Implementar salto com gravidade, aterrissagem e rotação visual. *(Concluída)*
-- [x] **Etapa 7:** Adicionar obstáculos e colisões, com testes. *(Concluída: obstáculos básicos, movimento sincronizado com o cenário e detecção simples de colisão em rectângulo, com testes unitários cobrindo movimento e derrota.)*
+- [x] **Etapa 7:** Adicionar obstáculos e colisões, com testes. *(Concluída: obstáculos básicos, movimento sincronizado com o cenário, blocos com colisão retangular e espinhos com colisão triangular precisa.)*
 - [x] **Etapa 8:** Carregar fase via JSON e validar dados. *(Concluída: adicionado carregador de fases com validação estrutural e tipos de obstáculo, além de arquivo JSON de exemplo em resources/phases/.)*
 - [x] **Etapa 9:** Implementar estados/telas: menu, dica, pausa, derrota, vitória e transições. *(Concluída)*
-- [ ] **Etapa 10:** Implementar progresso e dificuldade progressiva.
+- [x] **Etapa 10:** Implementar progresso e dificuldade progressiva. *(Concluída: progresso baseado na distância percorrida/comprimento da fase, barra e percentual na interface, velocidade progressiva limitada e vitória ao chegar ao fim.)*
 - [ ] **Etapa 11:** Adicionar áudio.
 - [ ] **Etapa 12:** Adicionar personalização e persistência.
 - [ ] **Etapa 13:** Testar regressões, documentar e preparar apresentação.
@@ -480,10 +480,11 @@ O estudante já escolheu Java, Swing, `Graphics2D`, execução local e MVC. Não
 ### Etapa 7 (04/11/2026) — Obstáculos e Detecção de Colisão
 - **Branch:** `feat/obstaculos-json-fase` (integrada via merge em `develop`)
 - **Ações:**
-  - **Model:** Criada classe `Obstacle` (BLOCO e ESPINHO) com hitboxes retangulares e método `colideComRetangulo`.
+  - **Model:** Criada classe `Obstacle` (BLOCO e ESPINHO) com colisão retangular para blocos e triangular para espinhos, verificada por `colideComRetangulo`.
   - **Model:** `GameModel` atualiza posições dos obstáculos sincronizadas com a velocidade do cenário e detecta colisão, acionando o estado `DERROTA`.
   - **View:** `GamePanel` renderiza blocos com borda destacada e espinhos triangulares usando `fillPolygon`.
   - **Testes:** `GameModelTest` cobre movimento dos obstáculos e transição para `DERROTA` ao colidir.
+  - **Ajuste posterior:** Espinhos usam teste geométrico da forma triangular; tocar a borda conta como colisão, mas a área vazia dos cantos da antiga hitbox retangular não.
 
 ### Etapa 8 (04/11/2026) — Carregamento de Fases via JSON
 - **Branch:** `feat/obstaculos-json-fase` (integrada via merge em `develop`)
@@ -504,3 +505,14 @@ O estudante já escolheu Java, Swing, `Graphics2D`, execução local e MVC. Não
   - Componentização e Reutilização: classe `MenuButton` encapsula geometria, desenho e teste de colisão de cursor.
   - Padrão State: isolamento das regras de transição no Model.
   - Tratamento discriminado de eventos de mouse: separação clara entre interação com interface e comando de física no jogo.
+
+### Etapa 10 (05/11/2026) — Progresso e Dificuldade Progressiva
+- **Ações:**
+  - **Fase/JSON:** Adicionado o campo obrigatório `comprimento`, validado junto às posições dos obstáculos. A aplicação carrega a fase principal do JSON; o espaçamento entre obstáculos permite aterrissar e preparar o próximo salto mesmo na velocidade máxima.
+  - **Model:** Progresso calculado como distância percorrida dividida pelo comprimento da fase; cenário e obstáculos aceleram de 180 a 300 px/s, com limite máximo. A fase termina em vitória ao alcançar 100%, sem reposicionar obstáculos em loop.
+  - **View:** Exibidos percentual e barra de progresso durante a partida e pausa; resultados também informam o percentual atingido.
+  - **Testes:** Cobertos cálculo de progresso, aceleração e limite, congelamento durante pausa, conclusão da fase, leitura do comprimento no JSON e preenchimento visual da barra.
+- **Conceitos de Java e POO abordados:**
+  - Integração da distância usando velocidade média em cada intervalo de atualização.
+  - Separação entre progresso/regras de conclusão no Model e representação da barra na View.
+  - Configuração de percurso e obstáculos em dados externos, mantendo o código de simulação independente da fase específica.
