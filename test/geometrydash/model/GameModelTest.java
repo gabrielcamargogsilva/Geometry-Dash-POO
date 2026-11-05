@@ -40,6 +40,7 @@ public class GameModelTest {
         testCadaSaltoGira90GrausEAterrissaNaNovaOrientacao();
         testObstaculosMovemComCenario();
         testObstaculosRestauradosNaNovaTentativa();
+        testListaDeObstaculosNaoPodeSerAlterada();
         testEspinhoSoColideNaAreaTriangular();
         testContatoComArestaDoEspinhoContaComoColisao();
         testFasePrincipalPodeSerConcluidaComSaltosSeparados();
@@ -423,15 +424,38 @@ public class GameModelTest {
 
     private static void testColisaoComObstaculoAcabaEmDerrota() {
         GameModel model = new GameModel();
+        model.carregarFase(new Phase("Colisão", 800, 600, 500,
+                List.of(new Obstacle(Obstacle.Tipo.BLOCO, 120,
+                        GameModel.POSICAO_CHAO_Y - GameModel.TAMANHO_PERSONAGEM,
+                        GameModel.TAMANHO_PERSONAGEM, GameModel.TAMANHO_PERSONAGEM))));
         model.iniciarPartida();
-        model.getObstaculos().clear();
-        model.getObstaculos().add(new Obstacle(Obstacle.Tipo.BLOCO, 120, GameModel.POSICAO_CHAO_Y - GameModel.TAMANHO_PERSONAGEM,
-                GameModel.TAMANHO_PERSONAGEM, GameModel.TAMANHO_PERSONAGEM));
-
         model.atualizar(0.016);
 
         afirmar(model.getEstadoAtual() == GameState.DERROTA,
                 "Uma colisão entre o personagem e um obstáculo deve encerrar a partida em derrota.");
+    }
+
+    private static void testListaDeObstaculosNaoPodeSerAlterada() {
+        GameModel model = new GameModel();
+        model.carregarFase(new Phase("Coleção", 800, 600, 500, List.of(
+                new Obstacle(Obstacle.Tipo.BLOCO, 50, 400, 20, 20),
+                new Obstacle(Obstacle.Tipo.ESPINHO, 100, 400, 20, 20))));
+        List<Obstacle> obstaculos = model.getObstaculos();
+        int quantidadeOriginal = obstaculos.size();
+
+        afirmar(quantidadeOriginal == 2
+                        && obstaculos.get(0).getTipo() == Obstacle.Tipo.BLOCO
+                        && obstaculos.get(1).getTipo() == Obstacle.Tipo.ESPINHO,
+                "O Model deve expor os obstáculos configurados na fase.");
+        afirmarLancaUnsupportedOperation(obstaculos::clear,
+                "A lista de obstáculos não deve permitir clear.");
+        afirmarLancaUnsupportedOperation(() -> obstaculos.remove(0),
+                "A lista de obstáculos não deve permitir remove.");
+        afirmarLancaUnsupportedOperation(() -> obstaculos.add(
+                        new Obstacle(Obstacle.Tipo.BLOCO, 0, 0, 10, 10)),
+                "A lista de obstáculos não deve permitir add.");
+        afirmar(model.getObstaculos().size() == quantidadeOriginal,
+                "Tentativas de alteração estrutural não devem modificar os obstáculos do Model.");
     }
 
     private static void testCarregarFaseValidaDoJsonExterno() {
@@ -569,7 +593,15 @@ public class GameModelTest {
 
     private static void testReiniciarPartidaAPartirDeDerrota() {
         GameModel model = new GameModel();
-        model.setEstadoAtual(GameState.DERROTA);
+        model.carregarFase(new Phase("Derrota", 800, 600, 500,
+                List.of(new Obstacle(Obstacle.Tipo.BLOCO, 120,
+                        GameModel.POSICAO_CHAO_Y - GameModel.TAMANHO_PERSONAGEM,
+                        GameModel.TAMANHO_PERSONAGEM, GameModel.TAMANHO_PERSONAGEM))));
+        model.iniciarPartida();
+        model.atualizar(0.016);
+        afirmar(model.getEstadoAtual() == GameState.DERROTA,
+                "O teste deve alcançar derrota por uma colisão real.");
+
         model.reiniciarPartida();
 
         afirmar(model.getEstadoAtual() == GameState.JOGANDO, "Reiniciar deve colocar a partida em JOGANDO.");
@@ -580,5 +612,14 @@ public class GameModelTest {
         if (!condicao) {
             throw new AssertionError("Falha no teste: " + mensagemErro);
         }
+    }
+
+    private static void afirmarLancaUnsupportedOperation(Runnable operacao, String mensagemErro) {
+        try {
+            operacao.run();
+        } catch (UnsupportedOperationException esperado) {
+            return;
+        }
+        throw new AssertionError("Falha no teste: " + mensagemErro);
     }
 }

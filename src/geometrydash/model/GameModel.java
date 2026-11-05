@@ -325,10 +325,6 @@ public class GameModel {
         return estadoAtual;
     }
 
-    public synchronized void setEstadoAtual(GameState novoEstado) {
-        this.estadoAtual = novoEstado;
-    }
-
     public synchronized double getTempoDecorrido() {
         return tempoDecorrido;
     }
@@ -370,7 +366,7 @@ public class GameModel {
     }
 
     public synchronized List<Obstacle> getObstaculos() {
-        return obstaculos;
+        return List.copyOf(obstaculos);
     }
 
     public synchronized boolean isPersonagemNoChao() {
