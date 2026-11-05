@@ -2,6 +2,7 @@ package geometrydash;
 
 import geometrydash.controller.GameController;
 import geometrydash.model.GameModel;
+import geometrydash.model.PhaseLoader;
 import geometrydash.view.GamePanel;
 import geometrydash.view.GameWindow;
 
@@ -21,6 +22,7 @@ public class Main {
         SwingUtilities.invokeLater(() -> {
             // 1. Model: Estado puro do jogo
             GameModel model = new GameModel();
+            model.carregarFase(PhaseLoader.carregarArquivo("resources/phases/fase-1.json"));
 
             // 2. View: Painel de renderização 2D
             GamePanel panel = new GamePanel(model);

@@ -12,7 +12,9 @@ Desenvolvido para o curso de **Back End — SENAI 2026 (2º Semestre)**.
 * **Interface Gráfica:** Java Swing (`JFrame`, `JPanel`).
 * **Renderização Visual:** `Graphics2D` nativo (formas geométricas, gradientes, transformações matriciais e anti-aliasing).
 * **Arquitetura:** Model-View-Controller (MVC) com separação estrita de camadas.
-* **Fases:** Arquivos JSON externos com validação de dados (`resources/phases/`).
+* **Fases:** Arquivos JSON externos com validação de dados (`resources/phases/`), comprimento total e obstáculos espaçados para permitir saltos individuais mesmo na velocidade máxima.
+* **Progressão:** Indicador de 0% a 100%; velocidade do cenário aumenta de 180 para 300 px/s e é limitada ao atingir o máximo.
+* **Colisões:** Blocos usam hitbox retangular; espinhos colidem pela área triangular desenhada, incluindo o contato com suas bordas.
 * **Controle de Versão:** Git Flow estrito (`branch de funcionalidade` -> `develop` -> `main`).
 * **CI / Automação:** GitHub Actions para detecção de segredos (Gitleaks) e esteira de testes automatizados headless (`.github/workflows/`).
 
@@ -71,6 +73,8 @@ java -cp bin geometrydash.view.component.MenuButtonTest
 ```
 *(Todos os testes executam de forma headless, sem necessidade de abrir janelas visuais).*
 
+O arquivo `resources/phases/fase-1.json` define a duração espacial da fase pelo campo `comprimento` e posiciona os obstáculos ao longo desse percurso. A velocidade começa em 180 px/s, aumenta 12 px/s a cada segundo de jogo e para de crescer em 300 px/s. O progresso é calculado pela distância percorrida em relação ao comprimento configurado; chegar ao fim conclui a fase.
+
 ---
 
 ## 📋 Status de Desenvolvimento
@@ -85,7 +89,7 @@ java -cp bin geometrydash.view.component.MenuButtonTest
 - [x] **Etapa 7:** Obstáculos (blocos e espinhos) e detecção de colisões.
 - [x] **Etapa 8:** Carregador de fases externo via JSON com validação semântica.
 - [x] **Etapa 9:** Telas de menu, controles, créditos, dica inicial, pausa, derrota e vitória com botões interativos.
-- [ ] **Etapa 10:** Progresso percentual da fase e dificuldade progressiva.
+- [x] **Etapa 10:** Progresso percentual, barra de progresso e dificuldade progressiva com conclusão da fase.
 - [ ] **Etapa 11:** Efeitos sonoros e música da fase.
 - [ ] **Etapa 12:** Personalização do personagem e persistência local.
 - [ ] **Etapa 13:** Testes de regressão e documentação final.

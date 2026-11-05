@@ -352,11 +352,33 @@ public class GamePanel extends JPanel {
         g2d.setColor(new Color(220, 240, 255));
         String textoTempo = String.format("Tempo: %.2f s", model.getTempoDecorrido());
         g2d.drawString(textoTempo, 20, 30);
+        desenharIndicadorProgresso(g2d);
 
         // Dica inicial curta (desaparece após 3 segundos)
         if (model.isExibindoDica()) {
             desenharDicaInicial(g2d);
         }
+    }
+
+    private void desenharIndicadorProgresso(Graphics2D g2d) {
+        int x = 280;
+        int y = 18;
+        int largura = 240;
+        int altura = 14;
+        int larguraPreenchida = (int) Math.round((largura - 2) * model.getProgressoPercentual() / 100.0);
+
+        g2d.setColor(new Color(20, 30, 50, 210));
+        g2d.fillRoundRect(x, y, largura, altura, 10, 10);
+        if (larguraPreenchida > 0) {
+            g2d.setColor(new Color(91, 244, 224));
+            g2d.fillRoundRect(x + 1, y + 1, larguraPreenchida, altura - 2, 8, 8);
+        }
+        g2d.setColor(new Color(180, 220, 235));
+        g2d.drawRoundRect(x, y, largura, altura, 10, 10);
+
+        g2d.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        g2d.setColor(new Color(220, 240, 255));
+        g2d.drawString(String.format("%.0f%%", model.getProgressoPercentual()), 535, 30);
     }
 
     private void desenharDicaInicial(Graphics2D g2d) {
@@ -372,6 +394,7 @@ public class GamePanel extends JPanel {
 
     private void desenharTelaPausa(Graphics2D g2d) {
         desenharOverlayEscuro(g2d, new Color(0, 0, 0, 180));
+        desenharIndicadorProgresso(g2d);
 
         g2d.setFont(new Font("Segoe UI", Font.BOLD, 30));
         g2d.setColor(new Color(255, 200, 0));
@@ -396,6 +419,7 @@ public class GamePanel extends JPanel {
         g2d.setFont(new Font("Segoe UI", Font.PLAIN, 16));
         g2d.setColor(new Color(240, 200, 200));
         desenharTextoCentralizado(g2d, String.format("Tempo alcançado nesta tentativa: %.2f s", model.getTempoDecorrido()), 225);
+        desenharTextoCentralizado(g2d, String.format("Progresso: %.0f%%", model.getProgressoPercentual()), 255);
 
         btnDerrotaTentar.desenhar(g2d);
         btnDerrotaMenu.desenhar(g2d);
@@ -411,6 +435,7 @@ public class GamePanel extends JPanel {
         g2d.setFont(new Font("Segoe UI", Font.PLAIN, 16));
         g2d.setColor(new Color(200, 245, 220));
         desenharTextoCentralizado(g2d, String.format("Tempo total da tentativa: %.2f s", model.getTempoDecorrido()), 225);
+        desenharTextoCentralizado(g2d, String.format("Progresso: %.0f%%", model.getProgressoPercentual()), 255);
 
         btnVitoriaJogar.desenhar(g2d);
         btnVitoriaMenu.desenhar(g2d);
