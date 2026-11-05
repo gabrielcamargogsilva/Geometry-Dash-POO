@@ -1,9 +1,9 @@
 package geometrydash.controller;
 
 import geometrydash.audio.AudioService;
+import geometrydash.model.BlockObstacle;
 import geometrydash.model.GameModel;
 import geometrydash.model.GameState;
-import geometrydash.model.Obstacle;
 import geometrydash.model.PersonagemCor;
 import geometrydash.model.PersonagemExpressao;
 import geometrydash.model.Phase;
@@ -122,7 +122,7 @@ public class InputControllerTest {
         // 9. Teste de botões na tela de Derrota
         model.voltarAoMenu();
         model.carregarFase(new Phase("Derrota", 800, 600, 500,
-                List.of(new Obstacle(Obstacle.Tipo.BLOCO, 120,
+                List.of(new BlockObstacle(120,
                         GameModel.POSICAO_CHAO_Y - GameModel.TAMANHO_PERSONAGEM,
                         GameModel.TAMANHO_PERSONAGEM, GameModel.TAMANHO_PERSONAGEM))));
         model.iniciarPartida();
