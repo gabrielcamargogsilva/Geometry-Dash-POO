@@ -311,7 +311,7 @@ Ajuste após inspecionar o repositório; não duplique o que já existir.
 - [x] **Etapa 9:** Implementar estados/telas: menu, dica, pausa, derrota, vitória e transições. *(Concluída)*
 - [x] **Etapa 10:** Implementar progresso e dificuldade progressiva. *(Concluída: progresso baseado na distância percorrida/comprimento da fase, barra e percentual na interface, velocidade progressiva limitada e vitória ao chegar ao fim.)*
 - [x] **Etapa 11:** Adicionar áudio local com Java Sound, incluindo música em loop, efeitos e sincronização com estados de pausa, derrota e vitória.
-- [ ] **Etapa 12:** Adicionar personalização e persistência.
+- [x] **Etapa 12:** Adicionar personalização de cor/expressão e persistência local de perfil e recorde.
 - [ ] **Etapa 13:** Testar regressões, documentar e preparar apresentação.
 - [ ] **Etapa 14:** Avaliar empacotamento JAR posteriormente.
 
@@ -528,3 +528,15 @@ O estudante já escolheu Java, Swing, `Graphics2D`, execução local e MVC. Não
   - Encapsulamento de recursos de áudio e separação da camada Model por meio de um serviço.
   - Reprodução de áudio local com Java Sound e controle de `Clip`.
   - Injeção de dependência (`AudioService`) para testar eventos sem hardware ou reprodução real.
+
+### Etapa 12 (05/11/2026) — Personalização e Persistência Local
+- **Ações:**
+  - **Model:** Adicionadas opções predefinidas para quatro cores e três expressões, além de armazenar o recorde percentual máximo entre tentativas.
+  - **View/Controller:** Incluída tela Personalizar no menu, com prévia do personagem, opções de cor/expressão e exibição do recorde. A pintura usa as opções escolhidas sem alterar hitboxes ou regras de física.
+  - **Persistência:** `ProfileStore` salva/restaura cor, expressão e recorde em `.geometry-dash-poo.properties` no diretório `user.home`, usando somente `Properties` e escrita temporária com substituição atômica quando suportada.
+  - **Ciclo de vida:** Perfil é carregado no início; personalizações são salvas ao selecionar e recorde ao terminar a partida ou fechar a janela. Problemas de leitura/escrita são informados no console, sem esconder a falha.
+  - **Testes:** Cobertos restauração de valores padrão, gravação/leitura do perfil, rejeição de dados inválidos, opções do menu, renderização da aparência e preservação do maior recorde. A CI executa os testes de persistência.
+- **Conceitos de Java e POO abordados:**
+  - `enum` para limitar as escolhas disponíveis de aparência.
+  - `Properties` para persistência local legível sem bibliotecas externas.
+  - Separação entre regras do perfil no Model, armazenamento no serviço de persistência e interação na View/Controller.
