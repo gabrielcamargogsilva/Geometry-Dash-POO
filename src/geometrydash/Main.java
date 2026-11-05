@@ -6,6 +6,8 @@ import geometrydash.model.PhaseLoader;
 import geometrydash.view.GamePanel;
 import geometrydash.view.GameWindow;
 
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import javax.swing.SwingUtilities;
 
 /**
@@ -28,10 +30,16 @@ public class Main {
             GamePanel panel = new GamePanel(model);
 
             // 3. Controller: Coordena eventos de entrada e regras
-            new GameController(model, panel);
+            GameController controller = new GameController(model, panel);
 
             // 4. Janela: Agrega o painel e exibe a interface
             GameWindow janela = new GameWindow(panel);
+            janela.getFrame().addWindowListener(new WindowAdapter() {
+                @Override
+                public void windowClosing(WindowEvent evento) {
+                    controller.encerrar();
+                }
+            });
             janela.exibir();
         });
     }

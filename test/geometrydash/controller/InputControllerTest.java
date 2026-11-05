@@ -1,5 +1,6 @@
 package geometrydash.controller;
 
+import geometrydash.audio.AudioService;
 import geometrydash.model.GameModel;
 import geometrydash.model.GameState;
 import geometrydash.view.GamePanel;
@@ -16,7 +17,8 @@ public class InputControllerTest {
     public static void main(String[] args) {
         GameModel model = new GameModel();
         GamePanel view = new GamePanel(model);
-        InputController controller = new InputController(model, view);
+        AudioFake audio = new AudioFake();
+        InputController controller = new InputController(model, view, audio);
 
         // 1. Clique fora de botões no menu não deve iniciar nem pular
         pressionarMouseEm(controller, view, 10, 10);
@@ -31,17 +33,20 @@ public class InputControllerTest {
                 "Clique no botão Jogar deve iniciar a partida.");
         afirmar(model.isPersonagemNoChao(),
                 "Clique no botão Jogar NÃO pode disparar o salto do personagem.");
+        afirmar(audio.cliques == 1, "Clicar em um botão deve reproduzir o efeito de clique.");
 
         // 3. Clique durante a partida deve pular
         pressionarMouseEm(controller, view, 10, 10);
         afirmar(!model.isPersonagemNoChao(),
                 "Clique durante a partida deve iniciar o salto.");
+        afirmar(audio.pulos == 1, "Um pulo aceito por clique deve reproduzir o efeito de pulo.");
 
         // 4. Espaço durante o salto deve ser ignorado (sem pulo duplo)
         double velocidadeDuranteSalto = model.getVelocidadeVerticalPersonagem();
         pressionarEspaco(controller, view);
         afirmar(model.getVelocidadeVerticalPersonagem() == velocidadeDuranteSalto,
                 "Espaço durante o salto deve ser ignorado, sem pulo duplo.");
+        afirmar(audio.pulos == 1, "Um pulo ignorado no ar não deve reproduzir efeito sonoro.");
 
         // 5. Aterrissagem e salto com espaço
         model.atualizar(0.7);
@@ -49,6 +54,7 @@ public class InputControllerTest {
         pressionarEspaco(controller, view);
         afirmar(!model.isPersonagemNoChao(),
                 "Espaço durante a partida deve iniciar o salto quando o personagem está no chão.");
+        afirmar(audio.pulos == 2, "Um pulo aceito pelo teclado deve reproduzir o efeito de pulo.");
 
         // 6. Teste de botões nas telas de Controles
         model.voltarAoMenu();
@@ -106,5 +112,20 @@ public class InputControllerTest {
         if (!condicao) {
             throw new AssertionError("Falha no teste: " + mensagemErro);
         }
+    }
+
+    private static class AudioFake implements AudioService {
+        private int pulos;
+        private int cliques;
+
+        @Override public void iniciarMusica() { }
+        @Override public void pausarMusica() { }
+        @Override public void retomarMusica() { }
+        @Override public void pararMusica() { }
+        @Override public void tocarPulo() { pulos++; }
+        @Override public void tocarColisao() { }
+        @Override public void tocarVitoria() { }
+        @Override public void tocarClique() { cliques++; }
+        @Override public void close() { }
     }
 }

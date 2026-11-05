@@ -1,5 +1,7 @@
 package geometrydash.controller;
 
+import geometrydash.audio.AudioManager;
+import geometrydash.audio.AudioService;
 import geometrydash.model.GameModel;
 import geometrydash.view.GamePanel;
 
@@ -13,14 +15,16 @@ import geometrydash.view.GamePanel;
 public class GameController {
     private final GameModel model;
     private final GamePanel view;
+    private final AudioService audio;
     private final InputController inputController;
     private final GameLoop gameLoop;
 
     public GameController(GameModel model, GamePanel view) {
         this.model = model;
         this.view = view;
-        this.inputController = new InputController(model, view);
-        this.gameLoop = new GameLoop(model, view);
+        this.audio = new AudioManager();
+        this.inputController = new InputController(model, view, audio);
+        this.gameLoop = new GameLoop(model, view, audio);
 
         inicializarControles();
         iniciarCiclo();
@@ -41,6 +45,7 @@ public class GameController {
      */
     public void encerrar() {
         gameLoop.parar();
+        audio.close();
     }
 
     public GameModel getModel() {
