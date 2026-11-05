@@ -314,6 +314,8 @@ Ajuste após inspecionar o repositório; não duplique o que já existir.
 - [x] **Etapa 12:** Adicionar personalização de cor/expressão e persistência local de perfil e recorde.
 - [x] **Etapa 13:** Testes de regressão automatizados, documentação final e roteiro para apresentação.
 - [x] **Etapa 14:** Gerar e validar JAR executável autocontido com fase e áudios no classpath.
+- [x] **Etapa 15:** Proteger o encapsulamento da coleção e remover o setter genérico de estado.
+- [x] **Etapa 16:** Criar hierarquia polimórfica de obstáculos sem alterar o JSON ou a separação MVC.
 
 ## 13. Testes
 
@@ -387,6 +389,182 @@ Ao propor uma classe, explicar sua responsabilidade, camada MVC, dependências e
 O estudante já escolheu Java, Swing, `Graphics2D`, execução local e MVC. Não pergunte novamente essas decisões.
 
 **Prioridade central:** entregar um jogo funcional, organizado e testável, garantindo que o estudante entenda e consiga defender tecnicamente cada parte.
+
+
+## 18. Evolução de POO — Encapsulamento, Herança e Polimorfismo
+
+**Status:** Etapas 15, 16 e 17 concluídas.
+**Branch de trabalho:** `refactor/pilares-poo-obstaculos`, criada a partir de `develop`.
+**Objetivo:** tornar os quatro pilares de POO mais claros e demonstráveis no domínio do jogo, corrigindo também pontos de encapsulamento identificados na revisão da branch `develop`.
+
+Esta evolução não deve reescrever o MVC nem mover regras de negócio para a View. A intenção é fazer mudanças pequenas, testáveis e justificadas pelo domínio.
+
+### 18.1 Diagnóstico que motivou a evolução
+
+A revisão da implementação identificou:
+
+- **Abstração:** já aparece em conceitos como `GameModel`, `Phase` e no contrato `AudioService`.
+- **Encapsulamento:** a revisão inicial identificou que `GameModel.getObstaculos()` devolvia a lista interna mutável, permitindo alterações estruturais fora das regras do Model. A Etapa 15 corrigiu esse vazamento.
+- **Herança:** já existe em `GamePanel extends JPanel`. É um exemplo válido de especialização de uma classe, embora venha do Swing e não represente uma hierarquia própria do domínio.
+- **Polimorfismo:** já existe no uso de `AudioService`/`AudioManager` e na sobrescrita de `paintComponent`. Porém, os obstáculos ainda concentram os comportamentos de bloco e espinho em uma única classe, selecionados por condicionais.
+
+A meta não é afirmar que os pilares estavam ausentes. É fortalecer sua aplicação no domínio do jogo, principalmente herança e polimorfismo, e fechar o vazamento de encapsulamento da coleção de obstáculos.
+
+### 18.2 Etapa 15 — Proteger o encapsulamento do Model (Concluída)
+
+**Arquivos envolvidos inicialmente:**
+- `src/geometrydash/model/GameModel.java`
+- `test/geometrydash/model/GameModelTest.java`
+
+**Alterações realizadas:**
+
+1. `GameModel.getObstaculos()` devolve uma cópia imutável:
+   ```java
+   public synchronized List<Obstacle> getObstaculos() {
+       return List.copyOf(obstaculos);
+   }
+   ```
+   A lista retornada não permitirá `add`, `remove` ou `clear`. Os objetos-obstáculo ainda possuem estado de movimento controlado pelo Model; portanto, a cópia da lista protege a estrutura da coleção, não transforma os próprios obstáculos em objetos imutáveis.
+
+2. Testes que precisavam manipular a lista agora preparam uma `Phase` com os obstáculos necessários e chamam `carregarFase(phase)`. Não há mais tentativas de alteração estrutural por `getObstaculos()`.
+
+3. Removido `setEstadoAtual(GameState)`, que permitia contornar as regras de transição. Os testes que precisavam de `DERROTA` agora provocam uma colisão com um obstáculo configurado na fase; outras transições usam os métodos públicos de comportamento.
+
+**Testes de aceitação concluídos:**
+- A lista retornada por `getObstaculos()` contém os obstáculos esperados.
+- Tentar alterar estruturalmente a lista retornada lança `UnsupportedOperationException`.
+- A configuração de obstáculos de um teste é feita por `Phase`/`carregarFase`, não por mutação da coleção interna.
+- As transições de estado continuam cobertas sem depender de um setter que burle as regras.
+
+**Conceito para apresentação:** encapsular não é apenas declarar atributos como `private`; é também controlar como o estado interno pode ser consultado e alterado.
+
+**Validação:** compilação Java 17, sete suítes de regressão e o teste de recursos do JAR passaram; a revisão confirmou que não restaram referências a `setEstadoAtual` nem mutações estruturais via `getObstaculos()`.
+
+### 18.3 Etapa 16 — Criar uma hierarquia de obstáculos (Concluída)
+
+**Arquivos envolvidos inicialmente:**
+- `src/geometrydash/model/Obstacle.java`
+- novos arquivos `src/geometrydash/model/BlockObstacle.java` e `src/geometrydash/model/SpikeObstacle.java`
+- `src/geometrydash/model/Phase.java`
+- `src/geometrydash/model/PhaseLoader.java`
+- `src/geometrydash/model/GameModel.java`
+- `src/geometrydash/view/GamePanel.java`
+- testes do Model e da View que utilizem obstáculos.
+
+**Estrutura implementada:**
+
+```text
+                 Obstacle
+              (abstract class)
+                /        \
+               /          \
+      BlockObstacle    SpikeObstacle
+       (retângulo)       (triângulo)
+```
+
+**Responsabilidades:**
+
+- `Obstacle` é uma classe abstrata com posição, dimensões, movimento, getters e o contrato de colisão.
+- `BlockObstacle extends Obstacle` implementa colisão retangular; `SpikeObstacle extends Obstacle` implementa a colisão triangular existente, incluindo contato com as bordas.
+- Cada subtipo implementa `copiar()` e `Phase` usa esse método ao copiar obstáculos, preservando o tipo concreto.
+- `GameModel` percorre `List<Obstacle>` e despacha `colideComRetangulo(...)` sem condicionais por tipo.
+- `PhaseLoader` mantém os tipos JSON `BLOCO`/`ESPINHO` e instancia o subtipo correto por um `switch` privado.
+- Os obstáculos padrão do `GameModel` usam as subclasses concretas. A View continua desenhando através do discriminador `Tipo`; não contém lógica de colisão.
+
+**Regra importante de MVC:** não colocar `Graphics2D`, `Graphics` ou código de desenho em `Obstacle`, `BlockObstacle` ou `SpikeObstacle`. O Model define geometria e colisão; `GamePanel` continua responsável por desenhar. A View pode usar o tipo concreto/um discriminador de apresentação para escolher o desenho, mas não deve executar regras de colisão.
+
+**Compatibilidade do JSON:** manter o formato atual, sem exigir alteração dos arquivos de fase:
+```json
+{"tipo":"BLOCO","x":520,"y":448,"largura":32,"altura":32}
+{"tipo":"ESPINHO","x":760,"y":456,"largura":28,"altura":24}
+```
+
+**Testes de aceitação concluídos:**
+- Bloco colide de acordo com retângulos.
+- Espinho colide de acordo com o triângulo, sem gerar colisão nos cantos vazios da antiga caixa retangular.
+- Contato com a aresta do espinho continua sendo colisão.
+- `PhaseLoader` cria o subtipo correto a partir de cada tipo JSON.
+- Copiar uma `Phase` preserva os subtipos concretos.
+- `GameModel` detecta colisão iterando sobre `List<Obstacle>`, demonstrando despacho dinâmico.
+- A fase JSON existente continua carregando e sendo concluída como antes.
+- A renderização dos obstáculos permanece na View e os testes de regressão visual continuam passando.
+
+**Validação:** compilação Java 17, sete suítes de regressão, geração do JAR e teste de recursos empacotados passaram. A inspeção confirmou que o JSON existente não mudou, que o Model não importa AWT/Swing e que não há código gráfico nas classes do domínio.
+
+**Conceitos para apresentação:**
+- **Abstração:** `Obstacle` representa o conceito geral de obstáculo, sem definir um algoritmo único de colisão.
+- **Herança:** `BlockObstacle` e `SpikeObstacle` especializam `Obstacle`.
+- **Polimorfismo:** o Model percorre `List<Obstacle>` e chama o mesmo método; a implementação executada depende da classe concreta do objeto.
+- **Sobrescrita:** cada subclasse fornece sua implementação de `colideComRetangulo(...)`.
+
+### Etapa 16 (05/11/2026) — Hierarquia Polimórfica de Obstáculos
+- **Ações:**
+  - **Model:** `Obstacle` tornou-se abstrato; `BlockObstacle` e `SpikeObstacle` especializam colisão retangular e triangular. A representação mantém o enum `Tipo` para que a View continue escolhendo a forma desenhada sem conhecer regras de colisão.
+  - **Cópia e carregamento:** Os subtipos implementam `copiar()`, usado por `Phase` para preservar o tipo concreto. `PhaseLoader` conserva a compatibilidade com o JSON e cria instâncias concretas por `switch`; obstáculos padrão também usam as subclasses.
+  - **Testes:** Confirmados colisão de bloco, canto vazio e borda de espinho, subtipo criado pelo JSON, preservação do subtipo ao copiar fase, conclusão da fase JSON e regressão de renderização.
+  - **Validação:** Passaram compilação Java 17, todas as suítes headless, empacotamento e teste dos recursos dentro do JAR. `GameModel` permanece independente de AWT/Swing.
+- **Conceitos de Java e POO abordados:**
+  - Abstração do contrato comum em uma classe base abstrata.
+  - Herança para especializar comportamento do domínio.
+  - Sobrescrita e despacho dinâmico para selecionar a colisão concreta usando uma referência `Obstacle`.
+  - Cópia polimórfica para preservar o subtipo sem condicionais adicionais.
+
+### 18.4 Etapa 17 — Reforçar a injeção de dependência do áudio (Concluída)
+
+**Arquivos envolvidos inicialmente:**
+- `src/geometrydash/controller/GameController.java`
+- testes do Controller, se existentes.
+
+Antes desta etapa, `GameController` já declarava o atributo pelo contrato `AudioService`, e `GameLoop` já recebia esse contrato no construtor; porém, o Controller ainda instanciava diretamente `new AudioManager()`.
+
+**Alterações realizadas:**
+- Adicionado um construtor que recebe `AudioService`:
+  ```java
+  public GameController(
+          GameModel model,
+          GamePanel view,
+          ProfileStore profileStore,
+          AudioService audio) {
+      // dependências validadas e armazenadas;
+      // InputController e GameLoop recebem o serviço injetado.
+  }
+  ```
+- O construtor de três argumentos foi preservado e delega para o construtor injetável, criando `AudioManager` no ponto de composição padrão.
+- `GameControllerTest` fornece um fake e confirma o encaminhamento de clique e o fechamento do serviço, sem carregar WAVs nem depender de dispositivo de áudio.
+- O Controller mantém responsabilidade de fechar o serviço e parar o GameLoop no encerramento.
+
+**Conceito para apresentação:** o Controller depende da abstração `AudioService`, e não precisa conhecer os detalhes internos do `AudioManager`. A implementação concreta é escolhida no ponto de composição.
+
+**Validação:** compilação Java 17, oito suítes headless, empacotamento do JAR e teste de leitura dos recursos empacotados passaram.
+
+### 18.5 Ordem de execução e commits
+
+Executar uma etapa por vez, sempre partindo da `develop`, conforme o fluxo Git já definido neste documento.
+
+1. `refactor/pilares-poo-obstaculos` foi criada a partir de `develop` e recebeu as etapas 15, 16 e 17 em commits separados por implementação, testes e documentação.
+
+Sugestão de commits granulares:
+- `refactor: protege a coleção de obstáculos do model`
+- `test: cobre encapsulamento da lista de obstáculos`
+- `refactor: cria hierarquia polimórfica de obstáculos`
+- `test: cobre colisões dos subtipos de obstáculos`
+- `refactor: injeta AudioService no GameController`
+- `docs: documenta os pilares de POO no projeto`
+
+Não fazer merge direto em `main`. Integrar a branch de funcionalidade em `develop` somente depois de revisar o diff e executar toda a suíte.
+
+### 18.6 Verificação final obrigatória
+
+Antes de considerar a evolução concluída:
+
+- Compilar com Java 17 (`javac --release 17`) usando o script/comando já documentado no README.
+- Executar todas as suítes automatizadas existentes, inclusive testes de Model, Controller, View, áudio, persistência e recursos empacotados.
+- Executar `scripts/build-jar.ps1` e validar o JAR, se o ambiente permitir PowerShell.
+- Verificar que o JSON de fase não mudou de formato.
+- Verificar que o Model continua sem dependências de Swing/AWT.
+- Atualizar README/roteiro de apresentação com exemplos reais dos quatro pilares e os caminhos dos arquivos.
+- Registrar neste documento o que foi efetivamente implementado, os testes executados e os commits. Só marcar como concluído após evidência de execução.
+
 
 ## 17. Registro de Progresso das Etapas
 

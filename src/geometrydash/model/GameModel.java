@@ -71,9 +71,9 @@ public class GameModel {
 
     private static List<Obstacle> criarObstaculosPadrao() {
         List<Obstacle> obstaculosPadrao = new ArrayList<>();
-        obstaculosPadrao.add(new Obstacle(Obstacle.Tipo.BLOCO, 520.0, POSICAO_CHAO_Y - 32.0, 32.0, 32.0));
-        obstaculosPadrao.add(new Obstacle(Obstacle.Tipo.ESPINHO, 760.0, POSICAO_CHAO_Y - 24.0, 28.0, 24.0));
-        obstaculosPadrao.add(new Obstacle(Obstacle.Tipo.BLOCO, 1020.0, POSICAO_CHAO_Y - 32.0, 32.0, 32.0));
+        obstaculosPadrao.add(new BlockObstacle(520.0, POSICAO_CHAO_Y - 32.0, 32.0, 32.0));
+        obstaculosPadrao.add(new SpikeObstacle(760.0, POSICAO_CHAO_Y - 24.0, 28.0, 24.0));
+        obstaculosPadrao.add(new BlockObstacle(1020.0, POSICAO_CHAO_Y - 32.0, 32.0, 32.0));
         return obstaculosPadrao;
     }
 
@@ -325,10 +325,6 @@ public class GameModel {
         return estadoAtual;
     }
 
-    public synchronized void setEstadoAtual(GameState novoEstado) {
-        this.estadoAtual = novoEstado;
-    }
-
     public synchronized double getTempoDecorrido() {
         return tempoDecorrido;
     }
@@ -370,7 +366,7 @@ public class GameModel {
     }
 
     public synchronized List<Obstacle> getObstaculos() {
-        return obstaculos;
+        return List.copyOf(obstaculos);
     }
 
     public synchronized boolean isPersonagemNoChao() {

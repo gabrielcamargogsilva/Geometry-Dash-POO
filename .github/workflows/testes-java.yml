@@ -53,6 +53,7 @@ jobs:
 
           TEST_CLASSES=(
             geometrydash.model.GameModelTest
+            geometrydash.controller.GameControllerTest
             geometrydash.controller.GameLoopTest
             geometrydash.controller.InputControllerTest
             geometrydash.view.GamePanelTest

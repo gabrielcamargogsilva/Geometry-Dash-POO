@@ -40,10 +40,12 @@ public class GameModelTest {
         testCadaSaltoGira90GrausEAterrissaNaNovaOrientacao();
         testObstaculosMovemComCenario();
         testObstaculosRestauradosNaNovaTentativa();
+        testListaDeObstaculosNaoPodeSerAlterada();
         testEspinhoSoColideNaAreaTriangular();
         testContatoComArestaDoEspinhoContaComoColisao();
         testFasePrincipalPodeSerConcluidaComSaltosSeparados();
         testColisaoComObstaculoAcabaEmDerrota();
+        testColisaoPolimorficaComEspinhoNoModel();
         testCarregarFaseValidaDoJsonExterno();
         testCarregarFasePrincipalDoProjeto();
         testJsonInvalidoDeveLancarErro();
@@ -376,7 +378,7 @@ public class GameModelTest {
     }
 
     private static void testEspinhoSoColideNaAreaTriangular() {
-        Obstacle espinho = new Obstacle(Obstacle.Tipo.ESPINHO, 100.0, 100.0, 40.0, 40.0);
+        Obstacle espinho = new SpikeObstacle(100.0, 100.0, 40.0, 40.0);
 
         afirmar(!espinho.colideComRetangulo(101.0, 101.0, 5.0, 5.0),
                 "A área vazia no canto da hitbox retangular do espinho não deve causar derrota.");
@@ -385,7 +387,7 @@ public class GameModelTest {
     }
 
     private static void testContatoComArestaDoEspinhoContaComoColisao() {
-        Obstacle espinho = new Obstacle(Obstacle.Tipo.ESPINHO, 100.0, 100.0, 40.0, 40.0);
+        Obstacle espinho = new SpikeObstacle(100.0, 100.0, 40.0, 40.0);
 
         afirmar(espinho.colideComRetangulo(100.0, 110.0, 10.0, 10.0),
                 "Tocar exatamente a aresta inclinada do triângulo deve contar como colisão.");
@@ -423,15 +425,49 @@ public class GameModelTest {
 
     private static void testColisaoComObstaculoAcabaEmDerrota() {
         GameModel model = new GameModel();
+        model.carregarFase(new Phase("Colisão", 800, 600, 500,
+                List.of(new BlockObstacle(120,
+                        GameModel.POSICAO_CHAO_Y - GameModel.TAMANHO_PERSONAGEM,
+                        GameModel.TAMANHO_PERSONAGEM, GameModel.TAMANHO_PERSONAGEM))));
         model.iniciarPartida();
-        model.getObstaculos().clear();
-        model.getObstaculos().add(new Obstacle(Obstacle.Tipo.BLOCO, 120, GameModel.POSICAO_CHAO_Y - GameModel.TAMANHO_PERSONAGEM,
-                GameModel.TAMANHO_PERSONAGEM, GameModel.TAMANHO_PERSONAGEM));
-
         model.atualizar(0.016);
 
         afirmar(model.getEstadoAtual() == GameState.DERROTA,
                 "Uma colisão entre o personagem e um obstáculo deve encerrar a partida em derrota.");
+    }
+
+    private static void testColisaoPolimorficaComEspinhoNoModel() {
+        GameModel model = new GameModel();
+        model.carregarFase(new Phase("Colisão com espinho", 800, 600, 500,
+                List.of(new SpikeObstacle(120, 400, 80, 80))));
+        model.iniciarPartida();
+        model.atualizar(0.016);
+
+        afirmar(model.getEstadoAtual() == GameState.DERROTA,
+                "O Model deve invocar a colisão triangular pelo contrato Obstacle.");
+    }
+
+    private static void testListaDeObstaculosNaoPodeSerAlterada() {
+        GameModel model = new GameModel();
+        model.carregarFase(new Phase("Coleção", 800, 600, 500, List.of(
+                new BlockObstacle(50, 400, 20, 20),
+                new SpikeObstacle(100, 400, 20, 20))));
+        List<Obstacle> obstaculos = model.getObstaculos();
+        int quantidadeOriginal = obstaculos.size();
+
+        afirmar(quantidadeOriginal == 2
+                        && obstaculos.get(0) instanceof BlockObstacle
+                        && obstaculos.get(1) instanceof SpikeObstacle,
+                "O Model deve expor os obstáculos configurados na fase.");
+        afirmarLancaUnsupportedOperation(obstaculos::clear,
+                "A lista de obstáculos não deve permitir clear.");
+        afirmarLancaUnsupportedOperation(() -> obstaculos.remove(0),
+                "A lista de obstáculos não deve permitir remove.");
+        afirmarLancaUnsupportedOperation(() -> obstaculos.add(
+                        new BlockObstacle(0, 0, 10, 10)),
+                "A lista de obstáculos não deve permitir add.");
+        afirmar(model.getObstaculos().size() == quantidadeOriginal,
+                "Tentativas de alteração estrutural não devem modificar os obstáculos do Model.");
     }
 
     private static void testCarregarFaseValidaDoJsonExterno() {
@@ -455,6 +491,15 @@ public class GameModelTest {
             afirmar(fase.getComprimento() == 1200, "O comprimento da fase deve ser carregado do JSON.");
             afirmar(fase.getObstaculos().get(0).getTipo() == Obstacle.Tipo.BLOCO,
                     "O primeiro obstáculo deve manter o tipo BLOCO.");
+            afirmar(fase.getObstaculos().get(0) instanceof BlockObstacle
+                            && fase.getObstaculos().get(1) instanceof SpikeObstacle,
+                    "O JSON deve criar o subtipo concreto correspondente a cada obstáculo.");
+
+            Phase faseCopiada = new Phase(fase.getNome(), fase.getLargura(), fase.getAltura(),
+                    fase.getComprimento(), fase.getObstaculos());
+            afirmar(faseCopiada.getObstaculos().get(0) instanceof BlockObstacle
+                            && faseCopiada.getObstaculos().get(1) instanceof SpikeObstacle,
+                    "Copiar uma fase deve preservar os subtipos concretos dos obstáculos.");
         } catch (Exception e) {
             throw new AssertionError("Falha ao carregar uma fase válida a partir de JSON: " + e.getMessage(), e);
         }
@@ -569,7 +614,15 @@ public class GameModelTest {
 
     private static void testReiniciarPartidaAPartirDeDerrota() {
         GameModel model = new GameModel();
-        model.setEstadoAtual(GameState.DERROTA);
+        model.carregarFase(new Phase("Derrota", 800, 600, 500,
+                List.of(new BlockObstacle(120,
+                        GameModel.POSICAO_CHAO_Y - GameModel.TAMANHO_PERSONAGEM,
+                        GameModel.TAMANHO_PERSONAGEM, GameModel.TAMANHO_PERSONAGEM))));
+        model.iniciarPartida();
+        model.atualizar(0.016);
+        afirmar(model.getEstadoAtual() == GameState.DERROTA,
+                "O teste deve alcançar derrota por uma colisão real.");
+
         model.reiniciarPartida();
 
         afirmar(model.getEstadoAtual() == GameState.JOGANDO, "Reiniciar deve colocar a partida em JOGANDO.");
@@ -580,5 +633,14 @@ public class GameModelTest {
         if (!condicao) {
             throw new AssertionError("Falha no teste: " + mensagemErro);
         }
+    }
+
+    private static void afirmarLancaUnsupportedOperation(Runnable operacao, String mensagemErro) {
+        try {
+            operacao.run();
+        } catch (UnsupportedOperationException esperado) {
+            return;
+        }
+        throw new AssertionError("Falha no teste: " + mensagemErro);
     }
 }

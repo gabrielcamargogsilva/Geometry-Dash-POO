@@ -1,10 +1,12 @@
 package geometrydash.controller;
 
 import geometrydash.audio.AudioService;
+import geometrydash.model.BlockObstacle;
 import geometrydash.model.GameModel;
 import geometrydash.model.GameState;
 import geometrydash.model.PersonagemCor;
 import geometrydash.model.PersonagemExpressao;
+import geometrydash.model.Phase;
 import geometrydash.persistence.ProfileStore;
 import geometrydash.view.GamePanel;
 
@@ -12,6 +14,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 
 /**
  * Verifica os comandos de iniciar a partida, pular por teclado ou mouse,
@@ -117,7 +120,15 @@ public class InputControllerTest {
                 "Clique em Continuar na pausa NÃO pode disparar o salto.");
 
         // 9. Teste de botões na tela de Derrota
-        model.setEstadoAtual(GameState.DERROTA);
+        model.voltarAoMenu();
+        model.carregarFase(new Phase("Derrota", 800, 600, 500,
+                List.of(new BlockObstacle(120,
+                        GameModel.POSICAO_CHAO_Y - GameModel.TAMANHO_PERSONAGEM,
+                        GameModel.TAMANHO_PERSONAGEM, GameModel.TAMANHO_PERSONAGEM))));
+        model.iniciarPartida();
+        model.atualizar(0.016);
+        afirmar(model.getEstadoAtual() == GameState.DERROTA,
+                "O botão Tentar novamente deve ser testado após uma colisão real.");
         int btnTentarX = view.getBtnDerrotaTentar().getX() + 10;
         int btnTentarY = view.getBtnDerrotaTentar().getY() + 10;
         pressionarMouseEm(controller, view, btnTentarX, btnTentarY);
