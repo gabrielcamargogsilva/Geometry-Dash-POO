@@ -26,6 +26,7 @@ Desenvolvido para o curso de **Back End — SENAI 2026 (2º Semestre)**.
 
 * **Model (`geometrydash.model`):**
   * Representa o estado da partida, tempo, cinemática de salto, gravidade, cálculo de colisão e obstáculos.
+  * Expõe a coleção de obstáculos como cópia imutável; mudanças no estado do jogo ocorrem por operações de domínio, sem setter genérico de estado.
   * **Regra de ouro:** Nenhuma dependência de bibliotecas de interface gráfica (AWT/Swing). 100% testável via testes unitários em memória.
 * **View (`geometrydash.view`):**
   * Apresentação visual através de `GameWindow` e `GamePanel`.
@@ -132,3 +133,4 @@ Antes da apresentação, fazer um ensaio com a janela e o áudio no computador q
 - [x] **Etapa 12:** Personalização de cor/expressão e persistência local do perfil e recorde.
 - [x] **Etapa 13:** Testes de regressão, documentação final e roteiro de apresentação.
 - [x] **Etapa 14:** Empacotamento executável em JAR autocontido, com fase e áudio incluídos.
+- [x] **Etapa 15:** Proteção do encapsulamento do Model e testes de transição sem setter genérico.
