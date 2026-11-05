@@ -43,7 +43,7 @@ jobs:
 
           find src test -name "*.java" -print > sources.txt
 
-          javac -encoding UTF-8 \
+          javac --release 17 -encoding UTF-8 \
             -d build/classes \
             @sources.txt
 

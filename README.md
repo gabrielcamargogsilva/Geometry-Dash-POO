@@ -56,8 +56,9 @@ Desenvolvido para o curso de **Back End — SENAI 2026 (2º Semestre)**.
 ### 1. Compilação
 No terminal (PowerShell no Windows):
 ```powershell
-javac -encoding UTF-8 -d bin (Get-ChildItem -Recurse src/*.java, test/*.java | ForEach-Object { $_.FullName })
+javac --release 17 -encoding UTF-8 -d bin (Get-ChildItem -Recurse src/*.java, test/*.java | ForEach-Object { $_.FullName })
 ```
+`--release 17` garante que os `.class` gerados possam ser executados no JDK 17, mesmo que outro JDK mais novo esteja selecionado para compilação.
 
 ### 2. Executar o Jogo
 ```powershell
