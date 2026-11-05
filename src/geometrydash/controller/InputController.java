@@ -1,5 +1,6 @@
 package geometrydash.controller;
 
+import geometrydash.audio.AudioService;
 import geometrydash.model.GameModel;
 import geometrydash.model.GameState;
 import geometrydash.view.GamePanel;
@@ -20,11 +21,13 @@ import java.awt.event.MouseEvent;
 public class InputController extends KeyAdapter {
     private final GameModel model;
     private final GamePanel view;
+    private final AudioService audio;
     private final MouseAdapter mouseAdapter;
 
-    public InputController(GameModel model, GamePanel view) {
+    public InputController(GameModel model, GamePanel view, AudioService audio) {
         this.model = model;
         this.view = view;
+        this.audio = audio;
         this.mouseAdapter = new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
@@ -43,59 +46,75 @@ public class InputController extends KeyAdapter {
 
         // 1. Durante a partida, clique no cenário aciona o salto do personagem
         if (estadoAtual == GameState.JOGANDO) {
-            model.pular();
+            if (model.pular()) {
+                audio.tocarPulo();
+            }
             view.repaint();
             return;
         }
 
         // 2. Nas demais telas, verifica se o clique acertou algum botão interativo
+        boolean cliqueEmBotao = false;
         switch (estadoAtual) {
             case MENU:
                 if (view.getBtnJogar().contem(mouseX, mouseY)) {
+                    cliqueEmBotao = true;
                     model.iniciarPartida();
                 } else if (view.getBtnControles().contem(mouseX, mouseY)) {
+                    cliqueEmBotao = true;
                     model.abrirControles();
                 } else if (view.getBtnCreditos().contem(mouseX, mouseY)) {
+                    cliqueEmBotao = true;
                     model.abrirCreditos();
                 } else if (view.getBtnSair().contem(mouseX, mouseY)) {
+                    cliqueEmBotao = true;
                     System.exit(0);
                 }
                 break;
 
             case CONTROLES:
                 if (view.getBtnVoltarControles().contem(mouseX, mouseY)) {
+                    cliqueEmBotao = true;
                     model.voltarAoMenu();
                 }
                 break;
 
             case CREDITOS:
                 if (view.getBtnVoltarCreditos().contem(mouseX, mouseY)) {
+                    cliqueEmBotao = true;
                     model.voltarAoMenu();
                 }
                 break;
 
             case PAUSADO:
                 if (view.getBtnPausaContinuar().contem(mouseX, mouseY)) {
+                    cliqueEmBotao = true;
                     model.alternarPausa();
                 } else if (view.getBtnPausaReiniciar().contem(mouseX, mouseY)) {
+                    cliqueEmBotao = true;
                     model.reiniciarPartida();
                 } else if (view.getBtnPausaMenu().contem(mouseX, mouseY)) {
+                    cliqueEmBotao = true;
                     model.voltarAoMenu();
                 }
                 break;
 
             case DERROTA:
                 if (view.getBtnDerrotaTentar().contem(mouseX, mouseY)) {
+                    cliqueEmBotao = true;
                     model.reiniciarPartida();
                 } else if (view.getBtnDerrotaMenu().contem(mouseX, mouseY)) {
+                    cliqueEmBotao = true;
                     model.voltarAoMenu();
                 }
                 break;
 
             case VITORIA:
                 if (view.getBtnVitoriaJogar().contem(mouseX, mouseY)) {
+                    cliqueEmBotao = true;
                     model.reiniciarPartida();
                 } else if (view.getBtnVitoriaMenu().contem(mouseX, mouseY)) {
+                    cliqueEmBotao = true;
                     model.voltarAoMenu();
                 }
                 break;
@@ -104,6 +123,9 @@ public class InputController extends KeyAdapter {
                 break;
         }
 
+        if (cliqueEmBotao) {
+            audio.tocarClique();
+        }
         view.repaint();
     }
 
@@ -137,7 +159,9 @@ public class InputController extends KeyAdapter {
                     model.iniciarPartida();
                     view.repaint();
                 } else if (estadoAtual == GameState.JOGANDO) {
-                    model.pular();
+                    if (model.pular()) {
+                        audio.tocarPulo();
+                    }
                     view.repaint();
                 }
                 break;

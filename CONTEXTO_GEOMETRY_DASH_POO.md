@@ -290,7 +290,7 @@ Elementos geométricos podem ser desenhados com `Graphics2D`. Formatos definitiv
 - Duração da dica.
 - Esquema JSON e biblioteca/estratégia de leitura.
 - Formato de persistência.
-- Formatos de imagem/áudio.
+- Formatos de imagem.
 - Estratégia final de colisão.
 - Detalhes visuais das telas.
 - Organização final de classes e serviços.
@@ -310,7 +310,7 @@ Ajuste após inspecionar o repositório; não duplique o que já existir.
 - [x] **Etapa 8:** Carregar fase via JSON e validar dados. *(Concluída: adicionado carregador de fases com validação estrutural e tipos de obstáculo, além de arquivo JSON de exemplo em resources/phases/.)*
 - [x] **Etapa 9:** Implementar estados/telas: menu, dica, pausa, derrota, vitória e transições. *(Concluída)*
 - [x] **Etapa 10:** Implementar progresso e dificuldade progressiva. *(Concluída: progresso baseado na distância percorrida/comprimento da fase, barra e percentual na interface, velocidade progressiva limitada e vitória ao chegar ao fim.)*
-- [ ] **Etapa 11:** Adicionar áudio.
+- [x] **Etapa 11:** Adicionar áudio local com Java Sound, incluindo música em loop, efeitos e sincronização com estados de pausa, derrota e vitória.
 - [ ] **Etapa 12:** Adicionar personalização e persistência.
 - [ ] **Etapa 13:** Testar regressões, documentar e preparar apresentação.
 - [ ] **Etapa 14:** Avaliar empacotamento JAR posteriormente.
@@ -516,3 +516,15 @@ O estudante já escolheu Java, Swing, `Graphics2D`, execução local e MVC. Não
   - Integração da distância usando velocidade média em cada intervalo de atualização.
   - Separação entre progresso/regras de conclusão no Model e representação da barra na View.
   - Configuração de percurso e obstáculos em dados externos, mantendo o código de simulação independente da fase específica.
+
+### Etapa 11 (05/11/2026) — Música e Efeitos Sonoros
+- **Ações:**
+  - **Áudio:** Criados `AudioService` e `AudioManager` com Java Sound (`Clip`), mantendo reprodução fora do Model e dos objetos de obstáculos.
+  - **Recursos:** Adicionados arquivos WAV locais originais para música em loop e efeitos de pulo, colisão, vitória e clique.
+  - **Controller:** Música inicia/reinicia com a partida, pausa/retoma com o estado do jogo e para imediatamente ao detectar derrota ou vitória. Pulos aceitos e cliques em botões acionam seus efeitos.
+  - **Ciclo de vida:** Os clips são fechados ao encerrar o Controller/janela. Arquivo ou dispositivo indisponível gera aviso explícito no console, sem impedir a execução do jogo.
+  - **Testes:** Cobertas transições de áudio, disparo de efeitos por entrada e validação dos cinco WAVs; a CI executa os testes sem depender de um dispositivo de áudio.
+- **Conceitos de Java e POO abordados:**
+  - Encapsulamento de recursos de áudio e separação da camada Model por meio de um serviço.
+  - Reprodução de áudio local com Java Sound e controle de `Clip`.
+  - Injeção de dependência (`AudioService`) para testar eventos sem hardware ou reprodução real.
