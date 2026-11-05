@@ -36,6 +36,9 @@ public class GameModelTest {
         testColisaoComObstaculoAcabaEmDerrota();
         testCarregarFaseValidaDoJsonExterno();
         testJsonInvalidoDeveLancarErro();
+        testTransicaoParaControlesECreditos();
+        testDicaInicialAoIniciarPartida();
+        testReiniciarPartidaAPartirDeDerrota();
 
         System.out.println(">>> [SUCESSO] Todos os testes unitários do GameModel passaram com êxito!");
     }
@@ -347,6 +350,42 @@ public class GameModelTest {
         } catch (Exception e) {
             throw new AssertionError("Tipo de erro inesperado ao validar JSON inválido: " + e.getMessage(), e);
         }
+    }
+
+    private static void testTransicaoParaControlesECreditos() {
+        GameModel model = new GameModel();
+        model.abrirControles();
+        afirmar(model.getEstadoAtual() == GameState.CONTROLES, "Deve transicionar para CONTROLES.");
+
+        model.voltarAoMenu();
+        afirmar(model.getEstadoAtual() == GameState.MENU, "Deve voltar para MENU.");
+
+        model.abrirCreditos();
+        afirmar(model.getEstadoAtual() == GameState.CREDITOS, "Deve transicionar para CREDITOS.");
+
+        model.voltarAoMenu();
+        afirmar(model.getEstadoAtual() == GameState.MENU, "Deve voltar para MENU.");
+    }
+
+    private static void testDicaInicialAoIniciarPartida() {
+        GameModel model = new GameModel();
+        model.iniciarPartida();
+        afirmar(model.isExibindoDica(), "A dica deve estar ativa logo após o início da partida.");
+
+        model.atualizar(2.0);
+        afirmar(model.isExibindoDica(), "A dica deve permanecer ativa aos 2 segundos.");
+
+        model.atualizar(1.1);
+        afirmar(!model.isExibindoDica(), "A dica deve expirar após 3 segundos.");
+    }
+
+    private static void testReiniciarPartidaAPartirDeDerrota() {
+        GameModel model = new GameModel();
+        model.setEstadoAtual(GameState.DERROTA);
+        model.reiniciarPartida();
+
+        afirmar(model.getEstadoAtual() == GameState.JOGANDO, "Reiniciar deve colocar a partida em JOGANDO.");
+        afirmar(model.getTempoDecorrido() == 0.0, "O tempo da nova tentativa deve iniciar em 0.0.");
     }
 
     private static void afirmar(boolean condicao, String mensagemErro) {

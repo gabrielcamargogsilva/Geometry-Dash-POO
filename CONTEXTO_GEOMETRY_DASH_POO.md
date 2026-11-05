@@ -308,7 +308,7 @@ Ajuste após inspecionar o repositório; não duplique o que já existir.
 - [x] **Etapa 6:** Implementar salto com gravidade, aterrissagem e rotação visual. *(Concluída)*
 - [x] **Etapa 7:** Adicionar obstáculos e colisões, com testes. *(Concluída: obstáculos básicos, movimento sincronizado com o cenário e detecção simples de colisão em rectângulo, com testes unitários cobrindo movimento e derrota.)*
 - [x] **Etapa 8:** Carregar fase via JSON e validar dados. *(Concluída: adicionado carregador de fases com validação estrutural e tipos de obstáculo, além de arquivo JSON de exemplo em resources/phases/.)*
-- [ ] **Etapa 9:** Implementar estados/telas: menu, dica, pausa, derrota, vitória e transições.
+- [x] **Etapa 9:** Implementar estados/telas: menu, dica, pausa, derrota, vitória e transições. *(Concluída)*
 - [ ] **Etapa 10:** Implementar progresso e dificuldade progressiva.
 - [ ] **Etapa 11:** Adicionar áudio.
 - [ ] **Etapa 12:** Adicionar personalização e persistência.
@@ -476,3 +476,31 @@ O estudante já escolheu Java, Swing, `Graphics2D`, execução local e MVC. Não
   - Sincronização de métodos para coordenar entrada na EDT e atualização do GameLoop.
 - **Limite desta etapa:** A hitbox ainda não foi criada; a rotação do desenho não influencia colisões. Obstáculos e colisões serão tratados nas etapas seguintes.
 - **Ajuste de comportamento:** A rotação é distribuída por saltos sucessivos, não dentro de um único salto. Cada salto gira mais 90 graus e aterrissa nessa orientação; depois de quatro saltos, a orientação retorna a em pé.
+
+### Etapa 7 (04/11/2026) — Obstáculos e Detecção de Colisão
+- **Branch:** `feat/obstaculos-json-fase` (integrada via merge em `develop`)
+- **Ações:**
+  - **Model:** Criada classe `Obstacle` (BLOCO e ESPINHO) com hitboxes retangulares e método `colideComRetangulo`.
+  - **Model:** `GameModel` atualiza posições dos obstáculos sincronizadas com a velocidade do cenário e detecta colisão, acionando o estado `DERROTA`.
+  - **View:** `GamePanel` renderiza blocos com borda destacada e espinhos triangulares usando `fillPolygon`.
+  - **Testes:** `GameModelTest` cobre movimento dos obstáculos e transição para `DERROTA` ao colidir.
+
+### Etapa 8 (04/11/2026) — Carregamento de Fases via JSON
+- **Branch:** `feat/obstaculos-json-fase` (integrada via merge em `develop`)
+- **Ações:**
+  - **Model:** Criada classe `Phase` e o carregador/validador `PhaseLoader` sem dependências externas, interpretando arquivos JSON em `resources/phases/`.
+  - **Validação:** Verificação de sintaxe, tipos conhecidos de obstáculos, campos obrigatórios e limites do percurso.
+  - **Testes:** Validação de fase regular e lançamento de exceção para JSON malformado no `GameModelTest`.
+
+### Etapa 9 (04/11/2026) — Estados, Telas e Transições
+- **Branch:** `feat/telas-menu-pausa-derrota-vitoria`
+- **Ações:**
+  - **Model:** Adicionados estados `CONTROLES` e `CREDITOS` no `GameState`. Criado temporizador da dica inicial curta (3 segundos) ao iniciar partida e métodos de navegação pura (`abrirControles`, `abrirCreditos`, `reiniciarPartida`).
+  - **View:** Criado componente reutilizável `MenuButton` com cantos arredondados, hit test geométrico e realce ao passar o mouse (*hover*).
+  - **View:** `GamePanel` implementa renderização completa para todas as telas (Menu com 4 opções, tela de Controles, tela de Créditos, banner de Dica em jogo, tela de Pausa, tela de Derrota e tela de Vitória).
+  - **Controller:** `InputController` atualizado com detecção de clique e movimento do mouse (*hover*). Regra de ouro atendida: **clicar em botões de menu/resultado NUNCA dispara o salto do personagem**.
+  - **Testes:** Novos testes em `GameModelTest`, `InputControllerTest` e `MenuButtonTest`. Todos os 5 testes automatizados integrados na esteira de CI (`testes-java.yml`).
+- **Conceitos de POO e Java abordados:**
+  - Componentização e Reutilização: classe `MenuButton` encapsula geometria, desenho e teste de colisão de cursor.
+  - Padrão State: isolamento das regras de transição no Model.
+  - Tratamento discriminado de eventos de mouse: separação clara entre interação com interface e comando de física no jogo.

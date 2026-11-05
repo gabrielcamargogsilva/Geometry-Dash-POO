@@ -13,9 +13,10 @@ package geometrydash.model;
  */
 public enum GameState {
     MENU,
+    CONTROLES,
+    CREDITOS,
     JOGANDO,
     PAUSADO,
     DERROTA,
     VITORIA
 }
-

@@ -3,6 +3,7 @@ package geometrydash.controller;
 import geometrydash.model.GameModel;
 import geometrydash.model.GameState;
 import geometrydash.view.GamePanel;
+import geometrydash.view.component.MenuButton;
 
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
@@ -10,18 +11,11 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
 /**
- * Captura e interpreta entradas de teclado do jogador (Camada Controller).
+ * Captura e interpreta entradas de teclado e mouse do jogador (Camada Controller).
  * 
- * Conceitos de POO e Java:
- * 1. Padrão Adapter (KeyAdapter):
- *    Em vez de implementar a interface KeyListener diretamente (que nos obrigaria
- *    a declarar métodos vazios para keyTyped e keyReleased), herdamos de KeyAdapter,
- *    uma classe utilitária do Java que já fornece implementações padrão vazias.
- *    Assim, sobrescrevemos (@Override) apenas o método 'keyPressed' que nos interessa.
- * 
- * 2. Responsabilidade do Controller no MVC:
- *    O Controller recebe a entrada bruta (ex: tecla Espaço), interpreta o significado
- *    com base no estado atual e comanda o Model.
+ * Regra Fundamental:
+ * - O clique em botões de menu ou de telas de resultado NUNCA dispara o pulo do personagem.
+ * - O significado de cada entrada varia estritamente conforme o GameState ativo.
  */
 public class InputController extends KeyAdapter {
     private final GameModel model;
@@ -34,12 +28,101 @@ public class InputController extends KeyAdapter {
         this.mouseAdapter = new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
-                if (InputController.this.model.getEstadoAtual() == GameState.JOGANDO) {
-                    InputController.this.model.pular();
-                    InputController.this.view.repaint();
-                }
+                tratarCliqueMouse(e.getX(), e.getY());
+            }
+
+            @Override
+            public void mouseMoved(MouseEvent e) {
+                tratarMovimentoMouse(e.getX(), e.getY());
             }
         };
+    }
+
+    private void tratarCliqueMouse(int mouseX, int mouseY) {
+        GameState estadoAtual = model.getEstadoAtual();
+
+        // 1. Durante a partida, clique no cenário aciona o salto do personagem
+        if (estadoAtual == GameState.JOGANDO) {
+            model.pular();
+            view.repaint();
+            return;
+        }
+
+        // 2. Nas demais telas, verifica se o clique acertou algum botão interativo
+        switch (estadoAtual) {
+            case MENU:
+                if (view.getBtnJogar().contem(mouseX, mouseY)) {
+                    model.iniciarPartida();
+                } else if (view.getBtnControles().contem(mouseX, mouseY)) {
+                    model.abrirControles();
+                } else if (view.getBtnCreditos().contem(mouseX, mouseY)) {
+                    model.abrirCreditos();
+                } else if (view.getBtnSair().contem(mouseX, mouseY)) {
+                    System.exit(0);
+                }
+                break;
+
+            case CONTROLES:
+                if (view.getBtnVoltarControles().contem(mouseX, mouseY)) {
+                    model.voltarAoMenu();
+                }
+                break;
+
+            case CREDITOS:
+                if (view.getBtnVoltarCreditos().contem(mouseX, mouseY)) {
+                    model.voltarAoMenu();
+                }
+                break;
+
+            case PAUSADO:
+                if (view.getBtnPausaContinuar().contem(mouseX, mouseY)) {
+                    model.alternarPausa();
+                } else if (view.getBtnPausaReiniciar().contem(mouseX, mouseY)) {
+                    model.reiniciarPartida();
+                } else if (view.getBtnPausaMenu().contem(mouseX, mouseY)) {
+                    model.voltarAoMenu();
+                }
+                break;
+
+            case DERROTA:
+                if (view.getBtnDerrotaTentar().contem(mouseX, mouseY)) {
+                    model.reiniciarPartida();
+                } else if (view.getBtnDerrotaMenu().contem(mouseX, mouseY)) {
+                    model.voltarAoMenu();
+                }
+                break;
+
+            case VITORIA:
+                if (view.getBtnVitoriaJogar().contem(mouseX, mouseY)) {
+                    model.reiniciarPartida();
+                } else if (view.getBtnVitoriaMenu().contem(mouseX, mouseY)) {
+                    model.voltarAoMenu();
+                }
+                break;
+
+            default:
+                break;
+        }
+
+        view.repaint();
+    }
+
+    private void tratarMovimentoMouse(int mouseX, int mouseY) {
+        boolean houveMudanca = false;
+
+        for (MenuButton botao : view.getBotoesAtivos()) {
+            boolean estavaComHover = botao.isHovered();
+            boolean agoraComHover = botao.contem(mouseX, mouseY);
+
+            if (estavaComHover != agoraComHover) {
+                botao.setHovered(agoraComHover);
+                houveMudanca = true;
+            }
+        }
+
+        if (houveMudanca) {
+            view.repaint();
+        }
     }
 
     @Override
@@ -49,10 +132,10 @@ public class InputController extends KeyAdapter {
 
         switch (codigoTecla) {
             case KeyEvent.VK_SPACE:
-                // No menu, Espaço inicia a partida
-                if (estadoAtual == GameState.MENU) {
+                if (estadoAtual == GameState.MENU || estadoAtual == GameState.DERROTA 
+                        || estadoAtual == GameState.VITORIA) {
                     model.iniciarPartida();
-                    view.repaint(); // Solicita à View o redesenho com o novo estado
+                    view.repaint();
                 } else if (estadoAtual == GameState.JOGANDO) {
                     model.pular();
                     view.repaint();
@@ -60,16 +143,18 @@ public class InputController extends KeyAdapter {
                 break;
 
             case KeyEvent.VK_ESCAPE:
-                // Durante o jogo ou pausa, Esc alterna o estado de pausa
                 if (estadoAtual == GameState.JOGANDO || estadoAtual == GameState.PAUSADO) {
                     model.alternarPausa();
+                    view.repaint();
+                } else if (estadoAtual == GameState.CONTROLES || estadoAtual == GameState.CREDITOS) {
+                    model.voltarAoMenu();
                     view.repaint();
                 }
                 break;
 
             case KeyEvent.VK_M:
-                // Se estiver pausado, tecla M retorna ao menu principal
-                if (estadoAtual == GameState.PAUSADO) {
+                if (estadoAtual == GameState.PAUSADO || estadoAtual == GameState.DERROTA 
+                        || estadoAtual == GameState.VITORIA) {
                     model.voltarAoMenu();
                     view.repaint();
                 }
