@@ -2,7 +2,7 @@
 
 **Repositório:** https://github.com/gabrielcamargogsilva/Geometry-Dash-POO.git  
 **Linguagem:** Java | **Interface:** Java Swing | **Desenho:** Graphics2D | **Arquitetura:** MVC  
-**Atualizado em:** 30/10/2026
+**Atualizado em:** 05/11/2026
 
 Este documento deve ser lido pelo agente da IDE antes de alterar o projeto. Ele registra os requisitos, decisões e regras de colaboração. Não presume que o repositório já tenha determinada implementação: inspecione os arquivos reais.
 
@@ -312,7 +312,7 @@ Ajuste após inspecionar o repositório; não duplique o que já existir.
 - [x] **Etapa 10:** Implementar progresso e dificuldade progressiva. *(Concluída: progresso baseado na distância percorrida/comprimento da fase, barra e percentual na interface, velocidade progressiva limitada e vitória ao chegar ao fim.)*
 - [x] **Etapa 11:** Adicionar áudio local com Java Sound, incluindo música em loop, efeitos e sincronização com estados de pausa, derrota e vitória.
 - [x] **Etapa 12:** Adicionar personalização de cor/expressão e persistência local de perfil e recorde.
-- [ ] **Etapa 13:** Testar regressões, documentar e preparar apresentação.
+- [x] **Etapa 13:** Testes de regressão automatizados, documentação final e roteiro para apresentação.
 - [ ] **Etapa 14:** Avaliar empacotamento JAR posteriormente.
 
 ## 13. Testes
@@ -540,3 +540,14 @@ O estudante já escolheu Java, Swing, `Graphics2D`, execução local e MVC. Não
   - `enum` para limitar as escolhas disponíveis de aparência.
   - `Properties` para persistência local legível sem bibliotecas externas.
   - Separação entre regras do perfil no Model, armazenamento no serviço de persistência e interação na View/Controller.
+
+### Etapa 13 (05/11/2026) — Regressão, Documentação e Apresentação
+- **Ações:**
+  - **Regressão:** Compilação completa com `javac --release 17` e execução headless das sete suítes existentes: Model, GameLoop, InputController, GamePanel, MenuButton, recursos de áudio e ProfileStore. Todas passaram.
+  - **Documentação:** Corrigido no README o comando PowerShell de compilação para incluir recursivamente os fontes de `src` e `test`; os testes agora são apresentados em um único loop que interrompe a execução se uma suíte falhar.
+  - **Apresentação:** Adicionado ao README um roteiro de 5 a 7 minutos com resumo das tecnologias, explicação do MVC, fluxo da demonstração, decisões técnicas e execução dos testes.
+  - **Verificação manual:** O roteiro recomenda ensaiar janela, controles e áudio no computador da apresentação. Essa verificação visual depende do ambiente e complementa a regressão automatizada.
+- **Conceitos de Java e POO abordados:**
+  - Testes headless e determinísticos permitem validar regras sem depender de uma janela ou dispositivo de áudio.
+  - A documentação de execução torna explícitas a raiz de trabalho, a compilação compatível com Java 17 e as dependências em tempo de execução.
+  - A apresentação resume responsabilidades MVC e decisões técnicas em linguagem demonstrável.
