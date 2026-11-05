@@ -33,7 +33,7 @@ public class AudioManager implements AudioService {
             Clip clip = AudioSystem.getClip();
             clip.open(fluxo);
             return clip;
-        } catch (IOException | UnsupportedAudioFileException | LineUnavailableException e) {
+        } catch (IOException | UnsupportedAudioFileException | LineUnavailableException | IllegalArgumentException e) {
             System.err.println("Não foi possível carregar o áudio " + caminho + ": " + e.getMessage());
             return null;
         }
