@@ -37,6 +37,7 @@ Desenvolvido para o curso de **Back End — SENAI 2026 (2º Semestre)**.
   * Orquestra o ciclo contínuo com `GameLoop` (60 FPS com delta time).
   * Escuta eventos de teclado e mouse com `InputController`.
   * Garante que cliques em botões de menu não disparem saltos acidentais no jogo.
+  * Recebe `AudioService` por injeção; `Main` escolhe `AudioManager`, enquanto testes podem usar um fake sem hardware.
 
 ## 🧩 Pilares de POO nos Obstáculos
 
@@ -44,6 +45,7 @@ Desenvolvido para o curso de **Back End — SENAI 2026 (2º Semestre)**.
 * **Herança:** [`BlockObstacle`](./src/geometrydash/model/BlockObstacle.java) e [`SpikeObstacle`](./src/geometrydash/model/SpikeObstacle.java) herdam os dados e comportamentos compartilhados.
 * **Polimorfismo:** `GameModel` percorre `List<Obstacle>` e chama `colideComRetangulo`; a implementação concreta é escolhida pelo tipo do objeto, sem condicionais de colisão no Model.
 * **Encapsulamento:** `GameModel.getObstaculos()` retorna uma cópia imutável da lista; `Phase` copia cada item pelo método polimórfico `copiar()`, preservando o subtipo.
+* **Inversão de dependência:** [`GameController`](./src/geometrydash/controller/GameController.java) recebe o contrato `AudioService`; a aplicação fornece `AudioManager` e os testes usam um fake.
 * **Separação MVC:** a View desenha os formatos, e o Model mantém geometria e regras de colisão.
 
 ---
@@ -82,6 +84,7 @@ java -cp bin geometrydash.Main
 ```powershell
 $testClasses = @(
     "geometrydash.model.GameModelTest",
+    "geometrydash.controller.GameControllerTest",
     "geometrydash.controller.GameLoopTest",
     "geometrydash.controller.InputControllerTest",
     "geometrydash.view.GamePanelTest",
@@ -144,3 +147,4 @@ Antes da apresentação, fazer um ensaio com a janela e o áudio no computador q
 - [x] **Etapa 14:** Empacotamento executável em JAR autocontido, com fase e áudio incluídos.
 - [x] **Etapa 15:** Proteção do encapsulamento do Model e testes de transição sem setter genérico.
 - [x] **Etapa 16:** Hierarquia de obstáculos com abstração, herança e colisão polimórfica.
+- [x] **Etapa 17:** Injeção de `AudioService` no Controller e teste sem hardware de áudio.

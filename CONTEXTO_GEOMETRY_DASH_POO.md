@@ -393,7 +393,7 @@ O estudante já escolheu Java, Swing, `Graphics2D`, execução local e MVC. Não
 
 ## 18. Evolução de POO — Encapsulamento, Herança e Polimorfismo
 
-**Status:** Etapas 15 e 16 concluídas; Etapa 17 planejada.
+**Status:** Etapas 15, 16 e 17 concluídas.
 **Branch de trabalho:** `refactor/pilares-poo-obstaculos`, criada a partir de `develop`.
 **Objetivo:** tornar os quatro pilares de POO mais claros e demonstráveis no domínio do jogo, corrigindo também pontos de encapsulamento identificados na revisão da branch `develop`.
 
@@ -509,39 +509,39 @@ A meta não é afirmar que os pilares estavam ausentes. É fortalecer sua aplica
   - Sobrescrita e despacho dinâmico para selecionar a colisão concreta usando uma referência `Obstacle`.
   - Cópia polimórfica para preservar o subtipo sem condicionais adicionais.
 
-### 18.4 Etapa 17 — Reforçar a injeção de dependência do áudio
+### 18.4 Etapa 17 — Reforçar a injeção de dependência do áudio (Concluída)
 
 **Arquivos envolvidos inicialmente:**
 - `src/geometrydash/controller/GameController.java`
 - testes do Controller, se existentes.
 
-`GameController` já declara o atributo pelo contrato `AudioService`, e `GameLoop` já recebe esse contrato no construtor. Entretanto, o Controller instancia diretamente `new AudioManager()`, o que mantém uma dependência concreta no ponto de composição.
+Antes desta etapa, `GameController` já declarava o atributo pelo contrato `AudioService`, e `GameLoop` já recebia esse contrato no construtor; porém, o Controller ainda instanciava diretamente `new AudioManager()`.
 
-**Alteração prevista:**
-- Adicionar um construtor que receba `AudioService`:
+**Alterações realizadas:**
+- Adicionado um construtor que recebe `AudioService`:
   ```java
   public GameController(
           GameModel model,
           GamePanel view,
           ProfileStore profileStore,
           AudioService audio) {
-      // validar e armazenar as dependências;
-      // construir InputController e GameLoop com o serviço recebido.
+      // dependências validadas e armazenadas;
+      // InputController e GameLoop recebem o serviço injetado.
   }
   ```
-- Preservar, se a aplicação principal precisar dele, o construtor atual como ponto de composição padrão, delegando para o novo construtor com `new AudioManager()`.
-- Permitir que testes forneçam uma implementação falsa (*fake*) de `AudioService`, sem carregar WAVs ou depender de dispositivo de áudio.
-- Manter o fechamento do serviço no ciclo de vida do Controller.
+- O construtor de três argumentos foi preservado e delega para o construtor injetável, criando `AudioManager` no ponto de composição padrão.
+- `GameControllerTest` fornece um fake e confirma o encaminhamento de clique e o fechamento do serviço, sem carregar WAVs nem depender de dispositivo de áudio.
+- O Controller mantém responsabilidade de fechar o serviço e parar o GameLoop no encerramento.
 
 **Conceito para apresentação:** o Controller depende da abstração `AudioService`, e não precisa conhecer os detalhes internos do `AudioManager`. A implementação concreta é escolhida no ponto de composição.
+
+**Validação:** compilação Java 17, oito suítes headless, empacotamento do JAR e teste de leitura dos recursos empacotados passaram.
 
 ### 18.5 Ordem de execução e commits
 
 Executar uma etapa por vez, sempre partindo da `develop`, conforme o fluxo Git já definido neste documento.
 
-1. `refactor/pilares-poo-obstaculos` — proteger a coleção e revisar o setter de estado.
-2. Na mesma branch ou em branch própria, conforme o tamanho do diff, criar a hierarquia polimórfica dos obstáculos.
-3. Em seguida, adicionar a injeção de `AudioService` no Controller.
+1. `refactor/pilares-poo-obstaculos` foi criada a partir de `develop` e recebeu as etapas 15, 16 e 17 em commits separados por implementação, testes e documentação.
 
 Sugestão de commits granulares:
 - `refactor: protege a coleção de obstáculos do model`
