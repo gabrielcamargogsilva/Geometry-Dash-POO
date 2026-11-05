@@ -16,6 +16,7 @@ Desenvolvido para o curso de **Back End — SENAI 2026 (2º Semestre)**.
 * **Progressão:** Indicador de 0% a 100%; velocidade do cenário aumenta de 180 para 300 px/s e é limitada ao atingir o máximo.
 * **Colisões:** Blocos usam hitbox retangular; espinhos colidem pela área triangular desenhada, incluindo o contato com suas bordas.
 * **Áudio:** Música e efeitos locais em WAV, reproduzidos com Java Sound (`Clip`), sem dependências externas.
+* **Perfil local:** Cor e expressão do personagem, além do recorde percentual, persistidos em arquivo `Properties` no diretório do usuário.
 * **Controle de Versão:** Git Flow estrito (`branch de funcionalidade` -> `develop` -> `main`).
 * **CI / Automação:** GitHub Actions para detecção de segredos (Gitleaks) e esteira de testes automatizados headless (`.github/workflows/`).
 
@@ -73,12 +74,15 @@ java -cp bin geometrydash.controller.InputControllerTest
 java -cp bin geometrydash.view.GamePanelTest
 java -cp bin geometrydash.view.component.MenuButtonTest
 java -cp bin geometrydash.audio.AudioAssetsTest
+java -cp bin geometrydash.persistence.ProfileStoreTest
 ```
 *(Todos os testes executam de forma headless, sem necessidade de abrir janelas visuais).*
 
 O arquivo `resources/phases/fase-1.json` define a duração espacial da fase pelo campo `comprimento` e posiciona os obstáculos ao longo desse percurso. A velocidade começa em 180 px/s, aumenta 12 px/s a cada segundo de jogo e para de crescer em 300 px/s. O progresso é calculado pela distância percorrida em relação ao comprimento configurado; chegar ao fim conclui a fase.
 
 Os arquivos de áudio originais ficam em `resources/audio/`. A música toca em loop durante a partida, pausa/retoma com o jogo e reinicia ao começar outra tentativa. Há efeitos para pulo, colisão, vitória e clique em botões. Se um arquivo ou dispositivo de áudio não estiver disponível, o erro é informado no console e o jogo continua sem aquele áudio.
+
+No menu **Personalizar**, é possível alternar entre quatro cores e três expressões. A escolha e o melhor progresso são salvos em `.geometry-dash-poo.properties` dentro do diretório indicado por `user.home`; o perfil é restaurado ao abrir o jogo. Se o arquivo estiver inválido ou inacessível, a causa é exibida no console e o jogo inicia com os valores padrão.
 
 ---
 
@@ -96,6 +100,6 @@ Os arquivos de áudio originais ficam em `resources/audio/`. A música toca em l
 - [x] **Etapa 9:** Telas de menu, controles, créditos, dica inicial, pausa, derrota e vitória com botões interativos.
 - [x] **Etapa 10:** Progresso percentual, barra de progresso e dificuldade progressiva com conclusão da fase.
 - [x] **Etapa 11:** Efeitos sonoros e música da fase.
-- [ ] **Etapa 12:** Personalização do personagem e persistência local.
+- [x] **Etapa 12:** Personalização de cor/expressão e persistência local do perfil e recorde.
 - [ ] **Etapa 13:** Testes de regressão e documentação final.
 - [ ] **Etapa 14:** Empacotamento executável (JAR).

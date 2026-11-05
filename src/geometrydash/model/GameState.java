@@ -15,6 +15,7 @@ public enum GameState {
     MENU,
     CONTROLES,
     CREDITOS,
+    PERSONALIZACAO,
     JOGANDO,
     PAUSADO,
     DERROTA,

@@ -45,6 +45,9 @@ public class GameModel {
     private final List<Obstacle> obstaculos;
     private Phase faseAtual;
     private double distanciaPercorrida;
+    private PersonagemCor personagemCor;
+    private PersonagemExpressao personagemExpressao;
+    private double recordePercentual;
 
     public GameModel() {
         this.estadoAtual = GameState.MENU;
@@ -60,6 +63,9 @@ public class GameModel {
         this.obstaculos = new ArrayList<>();
         this.faseAtual = new Phase("Fase padrão", 800, 600, 1400, criarObstaculosPadrao());
         this.distanciaPercorrida = 0.0;
+        this.personagemCor = PersonagemCor.TURQUESA;
+        this.personagemExpressao = PersonagemExpressao.CLASSICA;
+        this.recordePercentual = 0.0;
         inicializarObstaculos();
     }
 
@@ -108,6 +114,7 @@ public class GameModel {
         }
 
         distanciaPercorrida += deslocamentoAplicado;
+        recordePercentual = Math.max(recordePercentual, getProgressoPercentual());
         deslocamentoCenario = (deslocamentoCenario + deslocamentoAplicado)
                 % TAMANHO_CICLO_CENARIO;
         atualizarObstaculos(deslocamentoAplicado);
@@ -220,6 +227,49 @@ public class GameModel {
         if (this.estadoAtual == GameState.MENU) {
             this.estadoAtual = GameState.CREDITOS;
         }
+    }
+
+    public synchronized void abrirPersonalizacao() {
+        if (this.estadoAtual == GameState.MENU) {
+            this.estadoAtual = GameState.PERSONALIZACAO;
+        }
+    }
+
+    public synchronized void avancarCorPersonagem() {
+        if (estadoAtual == GameState.PERSONALIZACAO) {
+            personagemCor = personagemCor.proxima();
+        }
+    }
+
+    public synchronized void avancarExpressaoPersonagem() {
+        if (estadoAtual == GameState.PERSONALIZACAO) {
+            personagemExpressao = personagemExpressao.proxima();
+        }
+    }
+
+    public synchronized void aplicarPerfil(PlayerProfile perfil) {
+        if (perfil == null) {
+            throw new IllegalArgumentException("O perfil do jogador não pode ser nulo.");
+        }
+        personagemCor = perfil.cor();
+        personagemExpressao = perfil.expressao();
+        recordePercentual = perfil.recordePercentual();
+    }
+
+    public synchronized PlayerProfile getPerfil() {
+        return new PlayerProfile(personagemCor, personagemExpressao, recordePercentual);
+    }
+
+    public synchronized PersonagemCor getPersonagemCor() {
+        return personagemCor;
+    }
+
+    public synchronized PersonagemExpressao getPersonagemExpressao() {
+        return personagemExpressao;
+    }
+
+    public synchronized double getRecordePercentual() {
+        return recordePercentual;
     }
 
     /**

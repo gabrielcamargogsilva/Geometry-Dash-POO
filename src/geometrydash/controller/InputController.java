@@ -3,6 +3,7 @@ package geometrydash.controller;
 import geometrydash.audio.AudioService;
 import geometrydash.model.GameModel;
 import geometrydash.model.GameState;
+import geometrydash.persistence.ProfileStore;
 import geometrydash.view.GamePanel;
 import geometrydash.view.component.MenuButton;
 
@@ -10,6 +11,7 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.IOException;
 
 /**
  * Captura e interpreta entradas de teclado e mouse do jogador (Camada Controller).
@@ -22,12 +24,14 @@ public class InputController extends KeyAdapter {
     private final GameModel model;
     private final GamePanel view;
     private final AudioService audio;
+    private final ProfileStore profileStore;
     private final MouseAdapter mouseAdapter;
 
-    public InputController(GameModel model, GamePanel view, AudioService audio) {
+    public InputController(GameModel model, GamePanel view, AudioService audio, ProfileStore profileStore) {
         this.model = model;
         this.view = view;
         this.audio = audio;
+        this.profileStore = profileStore;
         this.mouseAdapter = new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
@@ -63,6 +67,9 @@ public class InputController extends KeyAdapter {
                 } else if (view.getBtnControles().contem(mouseX, mouseY)) {
                     cliqueEmBotao = true;
                     model.abrirControles();
+                } else if (view.getBtnPersonalizar().contem(mouseX, mouseY)) {
+                    cliqueEmBotao = true;
+                    model.abrirPersonalizacao();
                 } else if (view.getBtnCreditos().contem(mouseX, mouseY)) {
                     cliqueEmBotao = true;
                     model.abrirCreditos();
@@ -81,6 +88,21 @@ public class InputController extends KeyAdapter {
 
             case CREDITOS:
                 if (view.getBtnVoltarCreditos().contem(mouseX, mouseY)) {
+                    cliqueEmBotao = true;
+                    model.voltarAoMenu();
+                }
+                break;
+
+            case PERSONALIZACAO:
+                if (view.getBtnPersonalizacaoCor().contem(mouseX, mouseY)) {
+                    cliqueEmBotao = true;
+                    model.avancarCorPersonagem();
+                    salvarPerfil();
+                } else if (view.getBtnPersonalizacaoExpressao().contem(mouseX, mouseY)) {
+                    cliqueEmBotao = true;
+                    model.avancarExpressaoPersonagem();
+                    salvarPerfil();
+                } else if (view.getBtnVoltarPersonalizacao().contem(mouseX, mouseY)) {
                     cliqueEmBotao = true;
                     model.voltarAoMenu();
                 }
@@ -129,6 +151,14 @@ public class InputController extends KeyAdapter {
         view.repaint();
     }
 
+    private void salvarPerfil() {
+        try {
+            profileStore.salvar(model.getPerfil());
+        } catch (IOException e) {
+            System.err.println("Não foi possível salvar a personalização: " + e.getMessage());
+        }
+    }
+
     private void tratarMovimentoMouse(int mouseX, int mouseY) {
         boolean houveMudanca = false;
 
@@ -171,6 +201,9 @@ public class InputController extends KeyAdapter {
                     model.alternarPausa();
                     view.repaint();
                 } else if (estadoAtual == GameState.CONTROLES || estadoAtual == GameState.CREDITOS) {
+                    model.voltarAoMenu();
+                    view.repaint();
+                } else if (estadoAtual == GameState.PERSONALIZACAO) {
                     model.voltarAoMenu();
                     view.repaint();
                 }

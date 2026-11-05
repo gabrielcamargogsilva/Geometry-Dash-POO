@@ -3,6 +3,7 @@ package geometrydash.view;
 import geometrydash.model.GameModel;
 import geometrydash.model.GameState;
 import geometrydash.model.Obstacle;
+import geometrydash.model.PersonagemExpressao;
 import geometrydash.view.component.MenuButton;
 
 import javax.swing.JPanel;
@@ -40,12 +41,12 @@ public class GamePanel extends JPanel {
     private static final Color COR_FUNDO_SUPERIOR = new Color(17, 24, 43);
     private static final Color COR_FUNDO_INFERIOR = new Color(38, 34, 65);
     private static final Color COR_CHAO = new Color(29, 38, 57);
-    private static final Color COR_PERSONAGEM = new Color(45, 218, 204);
 
     private final GameModel model;
 
     // Botões das Telas do Menu
     private final MenuButton btnJogar;
+    private final MenuButton btnPersonalizar;
     private final MenuButton btnControles;
     private final MenuButton btnCreditos;
     private final MenuButton btnSair;
@@ -53,6 +54,9 @@ public class GamePanel extends JPanel {
     // Botão das Telas Secundárias
     private final MenuButton btnVoltarControles;
     private final MenuButton btnVoltarCreditos;
+    private final MenuButton btnPersonalizacaoCor;
+    private final MenuButton btnPersonalizacaoExpressao;
+    private final MenuButton btnVoltarPersonalizacao;
 
     // Botões da Tela de Pausa
     private final MenuButton btnPausaContinuar;
@@ -71,13 +75,17 @@ public class GamePanel extends JPanel {
         this.model = model;
 
         // Inicialização dos botões
-        this.btnJogar = new MenuButton(300, 220, 200, 42, "Jogar");
-        this.btnControles = new MenuButton(300, 275, 200, 42, "Controles");
-        this.btnCreditos = new MenuButton(300, 330, 200, 42, "Créditos");
-        this.btnSair = new MenuButton(300, 385, 200, 42, "Sair");
+        this.btnJogar = new MenuButton(300, 205, 200, 42, "Jogar");
+        this.btnPersonalizar = new MenuButton(300, 255, 200, 42, "Personalizar");
+        this.btnControles = new MenuButton(300, 305, 200, 42, "Controles");
+        this.btnCreditos = new MenuButton(300, 355, 200, 42, "Créditos");
+        this.btnSair = new MenuButton(300, 405, 200, 42, "Sair");
 
         this.btnVoltarControles = new MenuButton(300, 440, 200, 42, "Voltar ao Menu");
         this.btnVoltarCreditos = new MenuButton(300, 440, 200, 42, "Voltar ao Menu");
+        this.btnPersonalizacaoCor = new MenuButton(300, 350, 200, 42, "Próxima Cor");
+        this.btnPersonalizacaoExpressao = new MenuButton(300, 405, 200, 42, "Próxima Expressão");
+        this.btnVoltarPersonalizacao = new MenuButton(300, 460, 200, 42, "Voltar ao Menu");
 
         this.btnPausaContinuar = new MenuButton(300, 240, 200, 42, "Continuar");
         this.btnPausaReiniciar = new MenuButton(300, 295, 200, 42, "Reiniciar Fase");
@@ -108,6 +116,7 @@ public class GamePanel extends JPanel {
         switch (estado) {
             case MENU:
                 ativos.add(btnJogar);
+                ativos.add(btnPersonalizar);
                 ativos.add(btnControles);
                 ativos.add(btnCreditos);
                 ativos.add(btnSair);
@@ -117,6 +126,11 @@ public class GamePanel extends JPanel {
                 break;
             case CREDITOS:
                 ativos.add(btnVoltarCreditos);
+                break;
+            case PERSONALIZACAO:
+                ativos.add(btnPersonalizacaoCor);
+                ativos.add(btnPersonalizacaoExpressao);
+                ativos.add(btnVoltarPersonalizacao);
                 break;
             case PAUSADO:
                 ativos.add(btnPausaContinuar);
@@ -214,18 +228,43 @@ public class GamePanel extends JPanel {
                 POSICAO_PERSONAGEM_X + TAMANHO_PERSONAGEM / 2.0,
                 posicaoY + TAMANHO_PERSONAGEM / 2.0);
 
-        graphicsPersonagem.setColor(COR_PERSONAGEM);
+        graphicsPersonagem.setColor(new Color(model.getPersonagemCor().getRgb()));
         graphicsPersonagem.fillRect(POSICAO_PERSONAGEM_X, posicaoY, TAMANHO_PERSONAGEM, TAMANHO_PERSONAGEM);
 
         graphicsPersonagem.setColor(new Color(220, 255, 250));
         graphicsPersonagem.drawRect(POSICAO_PERSONAGEM_X, posicaoY,
                 TAMANHO_PERSONAGEM - 1, TAMANHO_PERSONAGEM - 1);
 
-        graphicsPersonagem.setColor(new Color(19, 38, 55));
-        graphicsPersonagem.fillRect(POSICAO_PERSONAGEM_X + 9, posicaoY + 11, 5, 7);
-        graphicsPersonagem.fillRect(POSICAO_PERSONAGEM_X + 26, posicaoY + 11, 5, 7);
-        graphicsPersonagem.fillRect(POSICAO_PERSONAGEM_X + 14, posicaoY + 27, 12, 4);
+        desenharExpressao(graphicsPersonagem, POSICAO_PERSONAGEM_X, posicaoY,
+                TAMANHO_PERSONAGEM, model.getPersonagemExpressao());
         graphicsPersonagem.dispose();
+    }
+
+    private void desenharExpressao(
+            Graphics2D g2d, int x, int y, int tamanho, PersonagemExpressao expressao) {
+        g2d.setColor(new Color(19, 38, 55));
+        int olhoLargura = Math.max(4, tamanho / 8);
+        int olhoAltura = Math.max(5, tamanho / 6);
+        int olhoEsquerdoX = x + tamanho * 9 / 40;
+        int olhoDireitoX = x + tamanho * 26 / 40;
+        int olhoY = y + tamanho * 11 / 40;
+
+        if (expressao == PersonagemExpressao.FELIZ) {
+            g2d.fillOval(olhoEsquerdoX, olhoY, olhoLargura, olhoAltura);
+            g2d.fillOval(olhoDireitoX, olhoY, olhoLargura, olhoAltura);
+            g2d.drawArc(x + tamanho * 14 / 40, y + tamanho * 22 / 40,
+                    tamanho * 12 / 40, tamanho * 10 / 40, 180, 180);
+        } else if (expressao == PersonagemExpressao.SERIA) {
+            g2d.fillRect(olhoEsquerdoX, olhoY + 2, olhoLargura + 1, Math.max(3, olhoAltura / 2));
+            g2d.fillRect(olhoDireitoX, olhoY + 2, olhoLargura + 1, Math.max(3, olhoAltura / 2));
+            g2d.drawLine(x + tamanho * 14 / 40, y + tamanho * 31 / 40,
+                    x + tamanho * 27 / 40, y + tamanho * 28 / 40);
+        } else {
+            g2d.fillRect(olhoEsquerdoX, olhoY, olhoLargura, olhoAltura);
+            g2d.fillRect(olhoDireitoX, olhoY, olhoLargura, olhoAltura);
+            g2d.fillRect(x + tamanho * 14 / 40, y + tamanho * 27 / 40,
+                    tamanho * 12 / 40, Math.max(3, tamanho / 10));
+        }
     }
 
     private void desenharInterfacePorEstado(Graphics2D g2d) {
@@ -242,6 +281,10 @@ public class GamePanel extends JPanel {
 
             case CREDITOS:
                 desenharTelaCreditos(g2d);
+                break;
+
+            case PERSONALIZACAO:
+                desenharTelaPersonalizacao(g2d);
                 break;
 
             case JOGANDO:
@@ -277,6 +320,7 @@ public class GamePanel extends JPanel {
 
         // Renderiza os botões
         btnJogar.desenhar(g2d);
+        btnPersonalizar.desenhar(g2d);
         btnControles.desenhar(g2d);
         btnCreditos.desenhar(g2d);
         btnSair.desenhar(g2d);
@@ -345,6 +389,37 @@ public class GamePanel extends JPanel {
         desenharTextoCentralizado(g2d, "Desenvolvedores: Gabriel Camargo Gonçalves Silva e Guilherme Leite", 385);
 
         btnVoltarCreditos.desenhar(g2d);
+    }
+
+    private void desenharTelaPersonalizacao(Graphics2D g2d) {
+        desenharOverlayEscuro(g2d, new Color(10, 15, 28, 220));
+
+        g2d.setFont(new Font("Segoe UI", Font.BOLD, 30));
+        g2d.setColor(new Color(0, 220, 255));
+        desenharTextoCentralizado(g2d, "PERSONALIZAR PERSONAGEM", 105);
+
+        int tamanho = 100;
+        int x = (LARGURA - tamanho) / 2;
+        int y = 145;
+        g2d.setColor(new Color(model.getPersonagemCor().getRgb()));
+        g2d.fillRoundRect(x, y, tamanho, tamanho, 12, 12);
+        g2d.setColor(new Color(220, 255, 250));
+        g2d.drawRoundRect(x, y, tamanho - 1, tamanho - 1, 12, 12);
+        desenharExpressao(g2d, x, y, tamanho, model.getPersonagemExpressao());
+
+        g2d.setFont(new Font("Segoe UI", Font.BOLD, 17));
+        g2d.setColor(Color.WHITE);
+        desenharTextoCentralizado(g2d, "Cor: " + model.getPersonagemCor().getNomeExibicao(), 280);
+        desenharTextoCentralizado(g2d,
+                "Expressão: " + model.getPersonagemExpressao().getNomeExibicao(), 315);
+        g2d.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        g2d.setColor(new Color(190, 220, 245));
+        desenharTextoCentralizado(g2d,
+                String.format("Seu recorde: %.0f%%", model.getRecordePercentual()), 338);
+
+        btnPersonalizacaoCor.desenhar(g2d);
+        btnPersonalizacaoExpressao.desenhar(g2d);
+        btnVoltarPersonalizacao.desenhar(g2d);
     }
 
     private void desenharInterfaceJogando(Graphics2D g2d) {
@@ -421,6 +496,7 @@ public class GamePanel extends JPanel {
         g2d.setColor(new Color(240, 200, 200));
         desenharTextoCentralizado(g2d, String.format("Tempo alcançado nesta tentativa: %.2f s", model.getTempoDecorrido()), 225);
         desenharTextoCentralizado(g2d, String.format("Progresso: %.0f%%", model.getProgressoPercentual()), 255);
+        desenharTextoCentralizado(g2d, String.format("Recorde pessoal: %.0f%%", model.getRecordePercentual()), 280);
 
         btnDerrotaTentar.desenhar(g2d);
         btnDerrotaMenu.desenhar(g2d);
@@ -437,6 +513,7 @@ public class GamePanel extends JPanel {
         g2d.setColor(new Color(200, 245, 220));
         desenharTextoCentralizado(g2d, String.format("Tempo total da tentativa: %.2f s", model.getTempoDecorrido()), 225);
         desenharTextoCentralizado(g2d, String.format("Progresso: %.0f%%", model.getProgressoPercentual()), 255);
+        desenharTextoCentralizado(g2d, String.format("Recorde pessoal: %.0f%%", model.getRecordePercentual()), 280);
 
         btnVitoriaJogar.desenhar(g2d);
         btnVitoriaMenu.desenhar(g2d);
@@ -455,11 +532,15 @@ public class GamePanel extends JPanel {
 
     // Getters dos botões para o Controller
     public MenuButton getBtnJogar() { return btnJogar; }
+    public MenuButton getBtnPersonalizar() { return btnPersonalizar; }
     public MenuButton getBtnControles() { return btnControles; }
     public MenuButton getBtnCreditos() { return btnCreditos; }
     public MenuButton getBtnSair() { return btnSair; }
     public MenuButton getBtnVoltarControles() { return btnVoltarControles; }
     public MenuButton getBtnVoltarCreditos() { return btnVoltarCreditos; }
+    public MenuButton getBtnPersonalizacaoCor() { return btnPersonalizacaoCor; }
+    public MenuButton getBtnPersonalizacaoExpressao() { return btnPersonalizacaoExpressao; }
+    public MenuButton getBtnVoltarPersonalizacao() { return btnVoltarPersonalizacao; }
     public MenuButton getBtnPausaContinuar() { return btnPausaContinuar; }
     public MenuButton getBtnPausaReiniciar() { return btnPausaReiniciar; }
     public MenuButton getBtnPausaMenu() { return btnPausaMenu; }

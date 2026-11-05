@@ -2,6 +2,9 @@ package geometrydash.view;
 
 import geometrydash.model.GameModel;
 import geometrydash.model.Phase;
+import geometrydash.model.PersonagemCor;
+import geometrydash.model.PersonagemExpressao;
+import geometrydash.model.PlayerProfile;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
@@ -26,6 +29,7 @@ public class GamePanelTest {
         afirmarCor(imagemEmMovimento, 10, 0, new Color(17, 24, 43), "fundo");
         afirmarCor(imagemEmMovimento, 10, 500, new Color(29, 38, 57), "chão");
         testBarraDeProgresso();
+        testPersonalizacaoDoPersonagemNaRenderizacao();
         int[] limitesPersonagemNoChao = limitesDaCor(imagemInicial, new Color(45, 218, 204));
         if (limitesPersonagemNoChao[0] != 121 || limitesPersonagemNoChao[1] != 441
                 || limitesPersonagemNoChao[2] != 158 || limitesPersonagemNoChao[3] != 478) {
@@ -78,6 +82,25 @@ public class GamePanelTest {
         if (imagemInicial.getRGB(300, 24) == corPreenchimento.getRGB()
                 || imagemComProgresso.getRGB(300, 24) != corPreenchimento.getRGB()) {
             throw new AssertionError("A barra deve preencher visualmente conforme o progresso da fase.");
+        }
+    }
+
+    private static void testPersonalizacaoDoPersonagemNaRenderizacao() {
+        GameModel model = new GameModel();
+        GamePanel painel = new GamePanel(model);
+        painel.setSize(GamePanel.LARGURA, GamePanel.ALTURA);
+        model.aplicarPerfil(new PlayerProfile(PersonagemCor.LARANJA, PersonagemExpressao.FELIZ, 0.0));
+
+        BufferedImage imagem = renderizar(painel);
+        Color corPersonalizada = new Color(PersonagemCor.LARANJA.getRgb());
+        if (imagem.getRGB(125, 445) != corPersonalizada.getRGB()) {
+            throw new AssertionError("A View deve desenhar o personagem com a cor definida pelo perfil.");
+        }
+
+        model.abrirPersonalizacao();
+        BufferedImage telaPersonalizacao = renderizar(painel);
+        if (telaPersonalizacao.getRGB(355, 150) != corPersonalizada.getRGB()) {
+            throw new AssertionError("A prévia deve refletir a cor e a expressão personalizadas.");
         }
     }
 
