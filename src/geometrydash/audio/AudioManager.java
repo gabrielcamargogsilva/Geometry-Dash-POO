@@ -6,6 +6,8 @@ import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.UnsupportedAudioFileException;
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
+import java.nio.file.Path;
 
 public class AudioManager implements AudioService {
     private final Clip musica;
@@ -15,21 +17,25 @@ public class AudioManager implements AudioService {
     private final Clip somClique;
 
     public AudioManager() {
-        musica = carregarClip("resources/audio/musica-fase.wav");
-        somPulo = carregarClip("resources/audio/pulo.wav");
-        somColisao = carregarClip("resources/audio/colisao.wav");
-        somVitoria = carregarClip("resources/audio/vitoria.wav");
-        somClique = carregarClip("resources/audio/clique.wav");
+        musica = carregarClip("/audio/musica-fase.wav");
+        somPulo = carregarClip("/audio/pulo.wav");
+        somColisao = carregarClip("/audio/colisao.wav");
+        somVitoria = carregarClip("/audio/vitoria.wav");
+        somClique = carregarClip("/audio/clique.wav");
     }
 
     private Clip carregarClip(String caminho) {
-        File arquivo = new File(caminho);
-        if (!arquivo.isFile()) {
-            System.err.println("Áudio indisponível: arquivo não encontrado: " + caminho);
+        String nomeRecurso = caminho.startsWith("/") ? caminho : "/" + caminho;
+        URL recurso = AudioManager.class.getResource(nomeRecurso);
+        File arquivo = Path.of("resources").resolve(nomeRecurso.substring(1)).toFile();
+        if (recurso == null && !arquivo.isFile()) {
+            System.err.println("Áudio indisponível: recurso não encontrado: " + caminho);
             return null;
         }
 
-        try (var fluxo = AudioSystem.getAudioInputStream(arquivo)) {
+        try (var fluxo = recurso != null
+                ? AudioSystem.getAudioInputStream(recurso)
+                : AudioSystem.getAudioInputStream(arquivo)) {
             Clip clip = AudioSystem.getClip();
             clip.open(fluxo);
             return clip;

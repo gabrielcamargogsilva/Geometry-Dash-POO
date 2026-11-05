@@ -1,6 +1,7 @@
 package geometrydash.model;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -11,6 +12,19 @@ import java.util.List;
 import java.util.Map;
 
 public class PhaseLoader {
+    public static Phase carregarRecurso(String caminhoRecurso) {
+        String nomeRecurso = caminhoRecurso.startsWith("/") ? caminhoRecurso.substring(1) : caminhoRecurso;
+        try (InputStream recurso = PhaseLoader.class.getResourceAsStream("/" + nomeRecurso)) {
+            if (recurso != null) {
+                return carregarJson(new String(recurso.readAllBytes(), StandardCharsets.UTF_8));
+            }
+        } catch (IOException e) {
+            throw new IllegalArgumentException("Não foi possível ler o recurso de fase: " + caminhoRecurso, e);
+        }
+
+        return carregarArquivo(Paths.get("resources").resolve(nomeRecurso).toString());
+    }
+
     public static Phase carregarArquivo(String caminhoArquivo) {
         try {
             Path caminho = Paths.get(caminhoArquivo);

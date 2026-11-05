@@ -86,6 +86,15 @@ foreach ($testClass in $testClasses) {
 ```
 *(Todos os testes executam de forma headless, sem necessidade de abrir janelas visuais).*
 
+### 4. Gerar e Executar o JAR
+Na raiz do projeto, no PowerShell:
+```powershell
+.\scripts\build-jar.ps1
+java -Djava.awt.headless=true -cp "bin;build\Geometry-Dash-POO.jar" geometrydash.packaging.PackagedResourcesTest
+java -jar .\build\Geometry-Dash-POO.jar
+```
+O script compila apenas o jogo, inclui a fase e os áudios no JAR e grava o resultado em `build/`. O arquivo pode ser executado de qualquer diretório com Java 17 ou superior; o perfil do jogador continua separado no diretório do usuário. O último comando valida que os recursos podem ser lidos de dentro do JAR (requer que os testes tenham sido compilados no passo 1).
+
 O arquivo `resources/phases/fase-1.json` define a duração espacial da fase pelo campo `comprimento` e posiciona os obstáculos ao longo desse percurso. A velocidade começa em 180 px/s, aumenta 12 px/s a cada segundo de jogo e para de crescer em 300 px/s. O progresso é calculado pela distância percorrida em relação ao comprimento configurado; chegar ao fim conclui a fase.
 
 Os arquivos de áudio originais ficam em `resources/audio/`. A música toca em loop durante a partida, pausa/retoma com o jogo e reinicia ao começar outra tentativa. Há efeitos para pulo, colisão, vitória e clique em botões. Se um arquivo ou dispositivo de áudio não estiver disponível, o erro é informado no console e o jogo continua sem aquele áudio.
@@ -100,7 +109,7 @@ Uma demonstração de aproximadamente 5 a 7 minutos pode seguir esta ordem:
 2. **Arquitetura MVC:** explicar que `GameModel` mantém regras e estado, `GamePanel` desenha o estado e `InputController`/`GameLoop` coordenam entradas e atualização.
 3. **Demonstração:** abrir o jogo a partir da raiz do projeto, mostrar menu e personalização, iniciar uma partida, pular, pausar e demonstrar um resultado.
 4. **Decisões técnicas:** destacar delta time, colisão triangular dos espinhos, fase externa em JSON, dificuldade progressiva, áudio local e perfil persistido.
-5. **Qualidade:** executar a compilação e os sete testes automatizados headless descritos acima; explicar que a CI repete essas verificações no GitHub Actions.
+5. **Distribuição e qualidade:** gerar o JAR com o script, mostrar como executá-lo com `java -jar` e executar os testes automatizados headless; explicar que a CI repete as verificações no GitHub Actions.
 
 Antes da apresentação, fazer um ensaio com a janela e o áudio no computador que será usado. A execução manual complementa os testes automatizados; não é coberta por eles.
 
@@ -122,4 +131,4 @@ Antes da apresentação, fazer um ensaio com a janela e o áudio no computador q
 - [x] **Etapa 11:** Efeitos sonoros e música da fase.
 - [x] **Etapa 12:** Personalização de cor/expressão e persistência local do perfil e recorde.
 - [x] **Etapa 13:** Testes de regressão, documentação final e roteiro de apresentação.
-- [ ] **Etapa 14:** Empacotamento executável (JAR).
+- [x] **Etapa 14:** Empacotamento executável em JAR autocontido, com fase e áudio incluídos.
