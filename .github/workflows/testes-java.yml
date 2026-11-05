@@ -57,6 +57,7 @@ jobs:
             geometrydash.controller.InputControllerTest
             geometrydash.view.GamePanelTest
             geometrydash.view.component.MenuButtonTest
+            geometrydash.audio.AudioAssetsTest
           )
 
           for test_class in "${TEST_CLASSES[@]}"; do
