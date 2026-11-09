@@ -148,3 +148,10 @@ Antes da apresentação, fazer um ensaio com a janela e o áudio no computador q
 - [x] **Etapa 15:** Proteção do encapsulamento do Model e testes de transição sem setter genérico.
 - [x] **Etapa 16:** Hierarquia de obstáculos com abstração, herança e colisão polimórfica.
 - [x] **Etapa 17:** Injeção de `AudioService` no Controller e teste sem hardware de áudio.
+
+
+## Desenvolvimento e Licença
+
+Feito por [**Gabriel Camargo**](https://github.com/gabrielcamargogsilva) e [**Guilherme Leite**](https://github.com/guilhermelleiteads) como projeto acadêmico do curso de **Back End — SENAI 2026 (2º Semestre)**.
+
+Este projeto é distribuído sob a [Licença MIT](./LICENSE).
