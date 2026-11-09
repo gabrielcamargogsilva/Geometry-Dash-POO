@@ -1,0 +1,23 @@
+{
+  "nome": "Fase 1",
+  "largura": 800,
+  "altura": 600,
+  "comprimento": 5000,
+  "obstaculos": [
+    { "tipo": "BLOCO", "x": 520, "y": 448, "largura": 32, "altura": 32 },
+    { "tipo": "ESPINHO", "x": 820, "y": 456, "largura": 28, "altura": 24 },
+    { "tipo": "BLOCO", "x": 1120, "y": 448, "largura": 32, "altura": 32 },
+    { "tipo": "BLOCO", "x": 1420, "y": 448, "largura": 32, "altura": 32 },
+    { "tipo": "ESPINHO", "x": 1720, "y": 456, "largura": 28, "altura": 24 },
+    { "tipo": "ESPINHO", "x": 2020, "y": 456, "largura": 28, "altura": 24 },
+    { "tipo": "ESPINHO", "x": 2320, "y": 456, "largura": 28, "altura": 24 },
+    { "tipo": "BLOCO", "x": 2620, "y": 448, "largura": 32, "altura": 32 },
+    { "tipo": "BLOCO", "x": 2920, "y": 448, "largura": 32, "altura": 32 },
+    { "tipo": "BLOCO", "x": 3220, "y": 448, "largura": 32, "altura": 32 },
+    { "tipo": "ESPINHO", "x": 3520, "y": 456, "largura": 28, "altura": 24 },
+    { "tipo": "ESPINHO", "x": 3820, "y": 456, "largura": 28, "altura": 24 },
+    { "tipo": "BLOCO", "x": 4120, "y": 448, "largura": 32, "altura": 32 },
+    { "tipo": "ESPINHO", "x": 4420, "y": 456, "largura": 28, "altura": 24 },
+    { "tipo": "BLOCO", "x": 4720, "y": 448, "largura": 32, "altura": 32 }
+  ]
+}

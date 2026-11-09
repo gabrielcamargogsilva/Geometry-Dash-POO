@@ -1,0 +1,95 @@
+
+name: Testes Java
+
+on:
+  pull_request:
+    branches:
+      - develop
+      - main
+
+  push:
+    branches:
+      - develop
+      - main
+      - "feat/**"
+      - "feature/**"
+      - "ci/**"
+
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  testes:
+    name: Compilar e executar testes
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Baixar código
+        uses: actions/checkout@v4
+
+      - name: Configurar Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Compilar projeto e testes
+        run: |
+          set -euo pipefail
+
+          mkdir -p build/classes
+
+          find src test -name "*.java" -print > sources.txt
+
+          javac --release 17 -encoding UTF-8 \
+            -d build/classes \
+            @sources.txt
+
+      - name: Executar testes automatizados
+        run: |
+          set -euo pipefail
+
+          TEST_CLASSES=(
+            geometrydash.model.GameModelTest
+            geometrydash.controller.GameControllerTest
+            geometrydash.controller.GameLoopTest
+            geometrydash.controller.InputControllerTest
+            geometrydash.view.GamePanelTest
+            geometrydash.view.component.MenuButtonTest
+            geometrydash.audio.AudioAssetsTest
+            geometrydash.persistence.ProfileStoreTest
+          )
+
+          for test_class in "${TEST_CLASSES[@]}"; do
+            echo "Executando: $test_class"
+
+            java -Djava.awt.headless=true \
+              -cp build/classes \
+              "$test_class"
+          done
+
+      - name: Empacotar JAR e validar recursos incluídos
+        run: |
+          set -euo pipefail
+
+          mkdir -p build/jar-classes
+          find src -name "*.java" -print > jar-sources.txt
+          javac --release 17 -encoding UTF-8 \
+            -d build/jar-classes \
+            @jar-sources.txt
+          cp -R resources/. build/jar-classes/
+
+          jar --create \
+            --file build/Geometry-Dash-POO.jar \
+            --main-class geometrydash.Main \
+            -C build/jar-classes .
+
+          mkdir -p build/packaged-test
+          (
+            cd build/packaged-test
+            java -Djava.awt.headless=true \
+              -cp "../classes:../Geometry-Dash-POO.jar" \
+              geometrydash.packaging.PackagedResourcesTest
+          )

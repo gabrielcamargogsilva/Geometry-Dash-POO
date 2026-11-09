@@ -1,8 +1,12 @@
 package geometrydash.controller;
 
+import geometrydash.audio.AudioService;
 import geometrydash.model.GameModel;
+import geometrydash.model.GameState;
+import geometrydash.persistence.ProfileStore;
 import geometrydash.view.GamePanel;
 
+import java.io.IOException;
 import javax.swing.SwingUtilities;
 
 /**
@@ -34,14 +38,20 @@ public class GameLoop implements Runnable {
 
     private final GameModel model;
     private final GamePanel view;
+    private final AudioService audio;
+    private final ProfileStore profileStore;
 
     private volatile boolean rodando;
     private Thread threadLoop;
+    private GameState estadoAnterior;
 
-    public GameLoop(GameModel model, GamePanel view) {
+    public GameLoop(GameModel model, GamePanel view, AudioService audio, ProfileStore profileStore) {
         this.model = model;
         this.view = view;
+        this.audio = audio;
+        this.profileStore = profileStore;
         this.rodando = false;
+        this.estadoAnterior = model.getEstadoAtual();
     }
 
     /**
@@ -87,6 +97,7 @@ public class GameLoop implements Runnable {
 
             // 1. Atualização lógica e física da simulação
             model.atualizar(deltaTime);
+            sincronizarAudioComEstado(model.getEstadoAtual());
 
             // 2. Solicitação de redesenho visual na Event Dispatch Thread
             SwingUtilities.invokeLater(view::repaint);
@@ -106,6 +117,44 @@ public class GameLoop implements Runnable {
         }
     }
 
+    private void sincronizarAudioComEstado(GameState estadoAtual) {
+        if (estadoAtual != estadoAnterior) {
+            sincronizarTransicaoDeAudio(audio, estadoAnterior, estadoAtual);
+            if (estadoAtual == GameState.DERROTA || estadoAtual == GameState.VITORIA) {
+                salvarPerfil();
+            }
+            estadoAnterior = estadoAtual;
+        }
+    }
+
+    private void salvarPerfil() {
+        try {
+            profileStore.salvar(model.getPerfil());
+        } catch (IOException e) {
+            System.err.println("Não foi possível salvar o recorde do jogador: " + e.getMessage());
+        }
+    }
+
+    static void sincronizarTransicaoDeAudio(AudioService audio, GameState estadoAnterior, GameState estadoAtual) {
+        if (estadoAtual == GameState.JOGANDO) {
+            if (estadoAnterior == GameState.PAUSADO) {
+                audio.retomarMusica();
+            } else {
+                audio.iniciarMusica();
+            }
+        } else if (estadoAtual == GameState.PAUSADO) {
+            audio.pausarMusica();
+        } else if (estadoAnterior == GameState.JOGANDO && estadoAtual == GameState.DERROTA) {
+            audio.pararMusica();
+            audio.tocarColisao();
+        } else if (estadoAnterior == GameState.JOGANDO && estadoAtual == GameState.VITORIA) {
+            audio.pararMusica();
+            audio.tocarVitoria();
+        } else if (estadoAtual != GameState.JOGANDO) {
+            audio.pararMusica();
+        }
+    }
+
     /**
      * Limita o delta time para proteger a física contra saltos bruscos.
      */
@@ -120,4 +169,3 @@ public class GameLoop implements Runnable {
         return rodando;
     }
 }
-

@@ -1,18 +1,150 @@
-## Getting Started
+# Geometry Dash POO
 
-Welcome to the VS Code Java world. Here is a guideline to help you get started to write Java code in Visual Studio Code.
+Projeto acadêmico de um jogo desktop 2D de progressão automática inspirado na mecânica de Geometry Dash, construído com foco em **Arquitetura de Software (MVC)** e conceitos de **Programação Orientada a Objetos (POO)** em Java.
 
-## Folder Structure
+Desenvolvido para o curso de **Back End — SENAI 2026 (2º Semestre)**.
 
-The workspace contains two folders by default, where:
+---
 
-- `src`: the folder to maintain sources
-- `lib`: the folder to maintain dependencies
+## 🛠️ Tecnologias e Decisões Técnicas
 
-Meanwhile, the compiled output files will be generated in the `bin` folder by default.
+* **Linguagem:** Java 17 (Eclipse Temurin / OpenJDK).
+* **Interface Gráfica:** Java Swing (`JFrame`, `JPanel`).
+* **Renderização Visual:** `Graphics2D` nativo (formas geométricas, gradientes, transformações matriciais e anti-aliasing).
+* **Arquitetura:** Model-View-Controller (MVC) com separação estrita de camadas.
+* **Fases:** Arquivos JSON externos com validação de dados (`resources/phases/`), comprimento total e obstáculos espaçados para permitir saltos individuais mesmo na velocidade máxima.
+* **Progressão:** Indicador de 0% a 100%; velocidade do cenário aumenta de 180 para 300 px/s e é limitada ao atingir o máximo.
+* **Colisões:** Blocos usam hitbox retangular; espinhos colidem pela área triangular desenhada, incluindo o contato com suas bordas.
+* **Áudio:** Música e efeitos locais em WAV, reproduzidos com Java Sound (`Clip`), sem dependências externas.
+* **Perfil local:** Cor e expressão do personagem, além do recorde percentual, persistidos em arquivo `Properties` no diretório do usuário.
+* **Controle de Versão:** Git Flow estrito (`branch de funcionalidade` -> `develop` -> `main`).
+* **CI / Automação:** GitHub Actions para detecção de segredos (Gitleaks) e esteira de testes automatizados headless (`.github/workflows/`).
 
-> If you want to customize the folder structure, open `.vscode/settings.json` and update the related settings there.
+---
 
-## Dependency Management
+## 🏛️ Arquitetura MVC
 
-The `JAVA PROJECTS` view allows you to manage your dependencies. More details can be found [here](https://github.com/microsoft/vscode-java-dependency#manage-dependencies).
+* **Model (`geometrydash.model`):**
+  * Representa o estado da partida, tempo, cinemática de salto, gravidade, cálculo de colisão e obstáculos.
+  * Expõe a coleção de obstáculos como cópia imutável; mudanças no estado do jogo ocorrem por operações de domínio, sem setter genérico de estado.
+  * `Obstacle` abstrai os dados comuns; `BlockObstacle` e `SpikeObstacle` especializam a colisão retangular e triangular, respectivamente.
+  * **Regra de ouro:** Nenhuma dependência de bibliotecas de interface gráfica (AWT/Swing). 100% testável via testes unitários em memória.
+* **View (`geometrydash.view`):**
+  * Apresentação visual através de `GameWindow` e `GamePanel`.
+  * Desenha cenário, obstáculos, personagem e telas de interface (Menu Principal, Controles, Créditos, Personalização, Pausa, Derrota e Vitória).
+  * Componentes reutilizáveis como `MenuButton` com efeito hover.
+* **Controller (`geometrydash.controller`):**
+  * Orquestra o ciclo contínuo com `GameLoop` (60 FPS com delta time).
+  * Escuta eventos de teclado e mouse com `InputController`.
+  * Garante que cliques em botões de menu não disparem saltos acidentais no jogo.
+  * Recebe `AudioService` por injeção; `Main` escolhe `AudioManager`, enquanto testes podem usar um fake sem hardware.
+
+## 🧩 Pilares de POO nos Obstáculos
+
+* **Abstração:** [`Obstacle`](./src/geometrydash/model/Obstacle.java) define posição, tamanho, movimento e o contrato de colisão, sem escolher um único formato.
+* **Herança:** [`BlockObstacle`](./src/geometrydash/model/BlockObstacle.java) e [`SpikeObstacle`](./src/geometrydash/model/SpikeObstacle.java) herdam os dados e comportamentos compartilhados.
+* **Polimorfismo:** `GameModel` percorre `List<Obstacle>` e chama `colideComRetangulo`; a implementação concreta é escolhida pelo tipo do objeto, sem condicionais de colisão no Model.
+* **Encapsulamento:** `GameModel.getObstaculos()` retorna uma cópia imutável da lista; `Phase` copia cada item pelo método polimórfico `copiar()`, preservando o subtipo.
+* **Inversão de dependência:** [`GameController`](./src/geometrydash/controller/GameController.java) recebe o contrato `AudioService`; a aplicação fornece `AudioManager` e os testes usam um fake.
+* **Separação MVC:** a View desenha os formatos, e o Model mantém geometria e regras de colisão.
+
+---
+
+## 🎮 Controles
+
+| Entrada | Ação |
+| :--- | :--- |
+| **Espaço** | Pular (durante a partida) / Iniciar ou reiniciar partida |
+| **Clique do Mouse** | Pular (durante a partida) / Interagir com botões dos menus |
+| **Esc** | Abrir / Fechar menu de pausa ou voltar ao menu principal |
+| **M** | Retornar ao menu principal (a partir da pausa ou telas de resultado) |
+
+---
+
+## 🚀 Como Executar o Projeto
+
+### Pré-requisitos
+* Java Development Kit (JDK) 17 ou superior instalado.
+
+### 1. Compilação
+Na raiz do projeto, no PowerShell:
+```powershell
+New-Item -ItemType Directory -Force bin | Out-Null
+$javaFiles = Get-ChildItem -Path src,test -Recurse -Filter *.java | ForEach-Object { $_.FullName }
+javac --release 17 -encoding UTF-8 -d bin $javaFiles
+```
+`--release 17` garante que os `.class` gerados possam ser executados no JDK 17, mesmo que outro JDK mais novo esteja selecionado para compilação.
+
+### 2. Executar o Jogo
+```powershell
+java -cp bin geometrydash.Main
+```
+
+### 3. Executar Todos os Testes Automatizados
+```powershell
+$testClasses = @(
+    "geometrydash.model.GameModelTest",
+    "geometrydash.controller.GameControllerTest",
+    "geometrydash.controller.GameLoopTest",
+    "geometrydash.controller.InputControllerTest",
+    "geometrydash.view.GamePanelTest",
+    "geometrydash.view.component.MenuButtonTest",
+    "geometrydash.audio.AudioAssetsTest",
+    "geometrydash.persistence.ProfileStoreTest"
+)
+foreach ($testClass in $testClasses) {
+    java -Djava.awt.headless=true -cp bin $testClass
+    if ($LASTEXITCODE -ne 0) { throw "Falha no teste: $testClass" }
+}
+```
+*(Todos os testes executam de forma headless, sem necessidade de abrir janelas visuais).*
+
+### 4. Gerar e Executar o JAR
+Na raiz do projeto, no PowerShell:
+```powershell
+.\scripts\build-jar.ps1
+java -Djava.awt.headless=true -cp "bin;build\Geometry-Dash-POO.jar" geometrydash.packaging.PackagedResourcesTest
+java -jar .\build\Geometry-Dash-POO.jar
+```
+O script compila apenas o jogo, inclui a fase e os áudios no JAR e grava o resultado em `build/`. O arquivo pode ser executado de qualquer diretório com Java 17 ou superior; o perfil do jogador continua separado no diretório do usuário. O último comando valida que os recursos podem ser lidos de dentro do JAR (requer que os testes tenham sido compilados no passo 1).
+
+O arquivo `resources/phases/fase-1.json` define a duração espacial da fase pelo campo `comprimento` e posiciona os obstáculos ao longo desse percurso. A velocidade começa em 180 px/s, aumenta 12 px/s a cada segundo de jogo e para de crescer em 300 px/s. O progresso é calculado pela distância percorrida em relação ao comprimento configurado; chegar ao fim conclui a fase.
+
+Os arquivos de áudio originais ficam em `resources/audio/`. A música toca em loop durante a partida, pausa/retoma com o jogo e reinicia ao começar outra tentativa. Há efeitos para pulo, colisão, vitória e clique em botões. Se um arquivo ou dispositivo de áudio não estiver disponível, o erro é informado no console e o jogo continua sem aquele áudio.
+
+No menu **Personalizar**, é possível alternar entre quatro cores e três expressões. A escolha e o melhor progresso são salvos em `.geometry-dash-poo.properties` dentro do diretório indicado por `user.home`; o perfil é restaurado ao abrir o jogo. Se o arquivo estiver inválido ou inacessível, a causa é exibida no console e o jogo inicia com os valores padrão.
+
+## 🎤 Roteiro de Apresentação
+
+Uma demonstração de aproximadamente 5 a 7 minutos pode seguir esta ordem:
+
+1. **Objetivo e tecnologias:** apresentar o jogo 2D em Java 17, Swing e `Graphics2D`, sem engine ou dependências externas.
+2. **Arquitetura MVC:** explicar que `GameModel` mantém regras e estado, `GamePanel` desenha o estado e `InputController`/`GameLoop` coordenam entradas e atualização.
+3. **Demonstração:** abrir o jogo a partir da raiz do projeto, mostrar menu e personalização, iniciar uma partida, pular, pausar e demonstrar um resultado.
+4. **Decisões técnicas:** destacar delta time, colisão triangular dos espinhos, fase externa em JSON, dificuldade progressiva, áudio local e perfil persistido.
+5. **Distribuição e qualidade:** gerar o JAR com o script, mostrar como executá-lo com `java -jar` e executar os testes automatizados headless; explicar que a CI repete as verificações no GitHub Actions.
+
+Antes da apresentação, fazer um ensaio com a janela e o áudio no computador que será usado. A execução manual complementa os testes automatizados; não é coberta por eles.
+
+---
+
+## 📋 Status de Desenvolvimento
+
+- [x] **Etapa 0:** Inspeção inicial e estruturação.
+- [x] **Etapa 1:** Ponto de entrada, janela fixa Swing e `.gitignore`.
+- [x] **Etapa 2:** Fundação MVC com `Graphics2D` e testes do Model.
+- [x] **Etapa 3:** Game Loop contínuo com Delta Time estabilizado.
+- [x] **Etapa 4:** Desenho do fundo, chão e personagem geométrico.
+- [x] **Etapa 5:** Movimento automático contínuo do cenário.
+- [x] **Etapa 6:** Física do salto com gravidade e rotação visual acumulada.
+- [x] **Etapa 7:** Obstáculos (blocos e espinhos) e detecção de colisões.
+- [x] **Etapa 8:** Carregador de fases externo via JSON com validação semântica.
+- [x] **Etapa 9:** Telas de menu, controles, créditos, dica inicial, pausa, derrota e vitória com botões interativos.
+- [x] **Etapa 10:** Progresso percentual, barra de progresso e dificuldade progressiva com conclusão da fase.
+- [x] **Etapa 11:** Efeitos sonoros e música da fase.
+- [x] **Etapa 12:** Personalização de cor/expressão e persistência local do perfil e recorde.
+- [x] **Etapa 13:** Testes de regressão, documentação final e roteiro de apresentação.
+- [x] **Etapa 14:** Empacotamento executável em JAR autocontido, com fase e áudio incluídos.
+- [x] **Etapa 15:** Proteção do encapsulamento do Model e testes de transição sem setter genérico.
+- [x] **Etapa 16:** Hierarquia de obstáculos com abstração, herança e colisão polimórfica.
+- [x] **Etapa 17:** Injeção de `AudioService` no Controller e teste sem hardware de áudio.
