@@ -1,4 +1,4 @@
-package geometrydash.model;
+package geometrydash.model.entity;
 
 public class BlockObstacle extends Obstacle {
     public BlockObstacle(double x, double y, double largura, double altura) {

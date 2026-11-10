@@ -1,7 +1,7 @@
 package geometrydash.controller;
 
 import geometrydash.audio.AudioService;
-import geometrydash.model.GameState;
+import geometrydash.model.entity.GameState;
 
 /**
  * Testes unitários para a lógica do Game Loop.

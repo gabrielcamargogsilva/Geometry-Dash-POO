@@ -1,4 +1,9 @@
-package geometrydash.model;
+package geometrydash.model.service;
+
+import geometrydash.model.entity.BlockObstacle;
+import geometrydash.model.entity.Obstacle;
+import geometrydash.model.entity.Phase;
+import geometrydash.model.entity.SpikeObstacle;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -212,47 +217,47 @@ public class PhaseLoader {
 
     private static String parseString(String json, int[] indice) {
         if (json.charAt(indice[0]) != '"') {
-            throw new IllegalArgumentException("JSON inválido: string esperada.");
+            throw new IllegalArgumentException("JSON inválido: string sem aspas iniciais.");
         }
 
         indice[0]++;
         StringBuilder builder = new StringBuilder();
         while (indice[0] < json.length()) {
-            char atual = json.charAt(indice[0]++);
+            char atual = json.charAt(indice[0]);
             if (atual == '"') {
+                indice[0]++;
                 return builder.toString();
             }
             if (atual == '\\') {
+                indice[0]++;
                 if (indice[0] >= json.length()) {
-                    throw new IllegalArgumentException("JSON inválido: escape de string incompleto.");
+                    throw new IllegalArgumentException("JSON inválido: escape incompleto.");
                 }
-                char proximo = json.charAt(indice[0]++);
+                char proximo = json.charAt(indice[0]);
                 switch (proximo) {
-                    case '"': builder.append('"'); break;
-                    case '\\': builder.append('\\'); break;
-                    case '/': builder.append('/'); break;
-                    case 'b': builder.append('\b'); break;
-                    case 'f': builder.append('\f'); break;
-                    case 'n': builder.append('\n'); break;
-                    case 'r': builder.append('\r'); break;
-                    case 't': builder.append('\t'); break;
-                    case 'u':
-                        if (indice[0] + 4 > json.length()) {
-                            throw new IllegalArgumentException("JSON inválido: unicode incompleto.");
+                    case '"', '\\', '/' -> builder.append(proximo);
+                    case 'b' -> builder.append('\b');
+                    case 'f' -> builder.append('\f');
+                    case 'n' -> builder.append('\n');
+                    case 'r' -> builder.append('\r');
+                    case 't' -> builder.append('\t');
+                    case 'u' -> {
+                        if (indice[0] + 4 >= json.length()) {
+                            throw new IllegalArgumentException("JSON inválido: escape unicode incompleto.");
                         }
-                        String unicode = json.substring(indice[0], indice[0] + 4);
-                        builder.append((char) Integer.parseInt(unicode, 16));
+                        String hex = json.substring(indice[0] + 1, indice[0] + 5);
+                        builder.append((char) Integer.parseInt(hex, 16));
                         indice[0] += 4;
-                        break;
-                    default:
-                        throw new IllegalArgumentException("JSON inválido: escape não suportado: \\" + proximo);
+                    }
+                    default -> throw new IllegalArgumentException("JSON inválido: sequência de escape desconhecida.");
                 }
-            } else {
-                builder.append(atual);
+                indice[0]++;
+                continue;
             }
+            builder.append(atual);
+            indice[0]++;
         }
-
-        throw new IllegalArgumentException("JSON inválido: string sem fechamento.");
+        throw new IllegalArgumentException("JSON incompleto: string sem fechamento.");
     }
 
     private static Object parseLiteral(String json, int[] indice) {
@@ -268,7 +273,7 @@ public class PhaseLoader {
             indice[0] += 4;
             return null;
         }
-        throw new IllegalArgumentException("JSON inválido: literal desconhecido.");
+        throw new IllegalArgumentException("JSON inválido: literal inesperado.");
     }
 
     private static Number parseNumero(String json, int[] indice) {
@@ -295,11 +300,8 @@ public class PhaseLoader {
             }
         }
 
-        String numero = json.substring(inicio, indice[0]);
-        if (numero.contains(".") || numero.contains("e") || numero.contains("E")) {
-            return Double.parseDouble(numero);
-        }
-        return Long.parseLong(numero);
+        String numeroTexto = json.substring(inicio, indice[0]);
+        return Double.parseDouble(numeroTexto);
     }
 
     private static void saltarEspacos(String json, int[] indice) {
@@ -311,40 +313,40 @@ public class PhaseLoader {
     private static void esperar(String json, int[] indice, char esperado) {
         saltarEspacos(json, indice);
         if (indice[0] >= json.length() || json.charAt(indice[0]) != esperado) {
-            throw new IllegalArgumentException("JSON inválido: esperado '" + esperado + "'.");
+            throw new IllegalArgumentException("JSON inválido: esperado '" + esperado + "' em posição " + indice[0]);
         }
         indice[0]++;
     }
 
     private static String exigirTexto(Map<String, Object> mapa, String chave) {
         Object valor = mapa.get(chave);
-        if (!(valor instanceof String texto) || texto.trim().isEmpty()) {
-            throw new IllegalArgumentException("Campo obrigatório ausente ou inválido: " + chave + ".");
+        if (!(valor instanceof String texto) || texto.isBlank()) {
+            throw new IllegalArgumentException("Campo obrigatório ausente ou inválido: " + chave);
         }
         return texto;
     }
 
     private static int exigirInteiro(Map<String, Object> mapa, String chave, int minimo, int maximo) {
         Object valor = mapa.get(chave);
-        if (valor instanceof Number numero) {
-            long valorComoLong = numero.longValue();
-            if (valorComoLong < minimo || valorComoLong > maximo) {
-                throw new IllegalArgumentException("Campo fora do intervalo esperado: " + chave + ".");
-            }
-            return (int) valorComoLong;
+        if (!(valor instanceof Number numero) || numero.doubleValue() != Math.rint(numero.doubleValue())) {
+            throw new IllegalArgumentException("Campo deve ser inteiro: " + chave);
         }
-        throw new IllegalArgumentException("Campo numérico inválido: " + chave + ".");
+        int inteiro = numero.intValue();
+        if (inteiro < minimo || inteiro > maximo) {
+            throw new IllegalArgumentException("Campo fora do intervalo: " + chave);
+        }
+        return inteiro;
     }
 
     private static double exigirNumero(Map<String, Object> mapa, String chave, double minimo, double maximo) {
         Object valor = mapa.get(chave);
-        if (valor instanceof Number numero) {
-            double valorComoDouble = numero.doubleValue();
-            if (Double.isNaN(valorComoDouble) || Double.isInfinite(valorComoDouble) || valorComoDouble < minimo || valorComoDouble > maximo) {
-                throw new IllegalArgumentException("Campo numérico inválido ou fora do intervalo: " + chave + ".");
-            }
-            return valorComoDouble;
+        if (!(valor instanceof Number numero)) {
+            throw new IllegalArgumentException("Campo deve ser numérico: " + chave);
         }
-        throw new IllegalArgumentException("Campo numérico inválido: " + chave + ".");
+        double numeroD = numero.doubleValue();
+        if (Double.isNaN(numeroD) || numeroD < minimo || numeroD > maximo) {
+            throw new IllegalArgumentException("Campo fora do intervalo: " + chave);
+        }
+        return numeroD;
     }
 }

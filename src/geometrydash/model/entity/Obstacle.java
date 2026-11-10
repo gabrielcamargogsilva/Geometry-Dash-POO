@@ -1,4 +1,4 @@
-package geometrydash.model;
+package geometrydash.model.entity;
 
 public abstract class Obstacle {
     public enum Tipo {

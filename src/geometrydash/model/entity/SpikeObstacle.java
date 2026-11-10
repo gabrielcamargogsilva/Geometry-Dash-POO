@@ -1,4 +1,4 @@
-package geometrydash.model;
+package geometrydash.model.entity;
 
 public class SpikeObstacle extends Obstacle {
     public SpikeObstacle(double x, double y, double largura, double altura) {

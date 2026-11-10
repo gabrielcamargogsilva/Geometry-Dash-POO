@@ -1,21 +1,17 @@
-package geometrydash.model;
+package geometrydash.model.service;
+
+import geometrydash.model.entity.BlockObstacle;
+import geometrydash.model.entity.GameState;
+import geometrydash.model.entity.Obstacle;
+import geometrydash.model.entity.PersonagemCor;
+import geometrydash.model.entity.PersonagemExpressao;
+import geometrydash.model.entity.Phase;
+import geometrydash.model.entity.PlayerProfile;
+import geometrydash.model.entity.SpikeObstacle;
 
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Representa o estado global do jogo e suas regras de negócio fundamentais (Camada Model).
- * 
- * REGRA ARQUITETURAL FUNDAMENTAL:
- * Esta classe NÃO possui nenhuma referência a Swing, JPanel, JFrame ou Graphics2D.
- * Ela pode ser testada de forma 100% automatizada e isolada sem abrir nenhuma janela.
- * 
- * Conceitos de POO:
- * - Encapsulamento: o atributo `estadoAtual` e o `tempoDecorrido` são privados
- *   e manipulados exclusivamente por métodos de negócio bem definidos.
- * - Determinismo: O método `atualizar(double deltaTime)` recebe o tempo como parâmetro,
- *   permitindo testes unitários precisos sem necessidade de pausas reais (sleep).
- */
 public class GameModel {
     public static final double POSICAO_CHAO_Y = 480.0;
     public static final double TAMANHO_PERSONAGEM = 40.0;
@@ -33,8 +29,8 @@ public class GameModel {
     private static final double POSICAO_PERSONAGEM_X = 120.0;
 
     private GameState estadoAtual;
-    private double tempoDecorrido; // Tempo total em segundos na tentativa atual
-    private double tempoDicaRestante; // Duração da dica inicial ao começar a fase
+    private double tempoDecorrido;
+    private double tempoDicaRestante;
     private double deslocamentoCenario;
     private double posicaoVerticalPersonagem;
     private double velocidadeVerticalPersonagem;
@@ -87,15 +83,6 @@ public class GameModel {
                 VELOCIDADE_MAXIMA_CENARIO);
     }
 
-    /**
-     * Atualiza a lógica de simulação do jogo com base no tempo decorrido (Delta Time).
-     * 
-     * Regra do Domínio:
-     * A simulação e a contagem de tempo só avançam quando o jogo estiver no estado JOGANDO.
-     * Durante PAUSADO, MENU, CONTROLES, CREDITOS, DERROTA ou VITORIA, o tempo fica congelado.
-     * 
-     * @param deltaTime Intervalo de tempo real em segundos desde a última atualização.
-     */
     public synchronized void atualizar(double deltaTime) {
         if (this.estadoAtual != GameState.JOGANDO) {
             return;
@@ -108,15 +95,13 @@ public class GameModel {
         double deslocamentoAplicado = Math.min(deslocamento, deslocamentoRestante);
         this.tempoDecorrido += deltaTime;
 
-        // Atualiza a contagem regressiva da dica inicial
         if (this.tempoDicaRestante > 0.0) {
             this.tempoDicaRestante = Math.max(0.0, this.tempoDicaRestante - deltaTime);
         }
 
         distanciaPercorrida += deslocamentoAplicado;
         recordePercentual = Math.max(recordePercentual, getProgressoPercentual());
-        deslocamentoCenario = (deslocamentoCenario + deslocamentoAplicado)
-                % TAMANHO_CICLO_CENARIO;
+        deslocamentoCenario = (deslocamentoCenario + deslocamentoAplicado) % TAMANHO_CICLO_CENARIO;
         atualizarObstaculos(deslocamentoAplicado);
 
         if (!personagemNoChao) {
@@ -176,12 +161,8 @@ public class GameModel {
                 + Math.min(VELOCIDADE_ROTACAO * tempoNoAr, ROTACAO_POR_SALTO);
     }
 
-    /**
-     * Inicia uma nova partida a partir do Menu, Pausa, Derrota ou Vitória.
-     * Zera o contador de tempo da tentativa e ativa a dica inicial por 3 segundos.
-     */
     public synchronized void iniciarPartida() {
-        if (estadoAtual == GameState.MENU || estadoAtual == GameState.PAUSADO 
+        if (estadoAtual == GameState.MENU || estadoAtual == GameState.PAUSADO
                 || estadoAtual == GameState.DERROTA || estadoAtual == GameState.VITORIA) {
             this.estadoAtual = GameState.JOGANDO;
             this.tempoDecorrido = 0.0;
@@ -193,16 +174,10 @@ public class GameModel {
         }
     }
 
-    /**
-     * Reinicia a partida imediatamente.
-     */
     public synchronized void reiniciarPartida() {
         iniciarPartida();
     }
 
-    /**
-     * Alterna o estado de pausa durante a partida.
-     */
     public synchronized void alternarPausa() {
         if (this.estadoAtual == GameState.JOGANDO) {
             this.estadoAtual = GameState.PAUSADO;
@@ -211,18 +186,12 @@ public class GameModel {
         }
     }
 
-    /**
-     * Navega para a tela de Controles a partir do Menu.
-     */
     public synchronized void abrirControles() {
         if (this.estadoAtual == GameState.MENU) {
             this.estadoAtual = GameState.CONTROLES;
         }
     }
 
-    /**
-     * Navega para a tela de Créditos a partir do Menu.
-     */
     public synchronized void abrirCreditos() {
         if (this.estadoAtual == GameState.MENU) {
             this.estadoAtual = GameState.CREDITOS;
@@ -272,9 +241,6 @@ public class GameModel {
         return recordePercentual;
     }
 
-    /**
-     * Retorna ao menu principal a partir de qualquer tela secundária.
-     */
     public synchronized void voltarAoMenu() {
         this.estadoAtual = GameState.MENU;
         this.tempoDecorrido = 0.0;
@@ -337,6 +303,10 @@ public class GameModel {
         return estadoAtual == GameState.JOGANDO && tempoDicaRestante > 0.0;
     }
 
+    public synchronized boolean isPersonagemNoChao() {
+        return personagemNoChao;
+    }
+
     public synchronized double getDeslocamentoCenario() {
         return deslocamentoCenario;
     }
@@ -369,7 +339,7 @@ public class GameModel {
         return List.copyOf(obstaculos);
     }
 
-    public synchronized boolean isPersonagemNoChao() {
-        return personagemNoChao;
+    public synchronized Phase getFaseAtual() {
+        return faseAtual;
     }
 }

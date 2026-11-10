@@ -1,5 +1,16 @@
 package geometrydash.model;
 
+import geometrydash.model.entity.BlockObstacle;
+import geometrydash.model.entity.GameState;
+import geometrydash.model.entity.Obstacle;
+import geometrydash.model.entity.PersonagemCor;
+import geometrydash.model.entity.PersonagemExpressao;
+import geometrydash.model.entity.Phase;
+import geometrydash.model.entity.PlayerProfile;
+import geometrydash.model.entity.SpikeObstacle;
+import geometrydash.model.service.GameModel;
+import geometrydash.model.service.PhaseLoader;
+
 import java.util.List;
 
 /**

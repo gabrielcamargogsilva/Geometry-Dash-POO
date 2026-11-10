@@ -1,12 +1,12 @@
 package geometrydash.controller;
 
 import geometrydash.audio.AudioService;
-import geometrydash.model.BlockObstacle;
-import geometrydash.model.GameModel;
-import geometrydash.model.GameState;
-import geometrydash.model.PersonagemCor;
-import geometrydash.model.PersonagemExpressao;
-import geometrydash.model.Phase;
+import geometrydash.model.entity.BlockObstacle;
+import geometrydash.model.entity.GameState;
+import geometrydash.model.entity.PersonagemCor;
+import geometrydash.model.entity.PersonagemExpressao;
+import geometrydash.model.entity.Phase;
+import geometrydash.model.service.GameModel;
 import geometrydash.persistence.ProfileStore;
 import geometrydash.view.GamePanel;
 
