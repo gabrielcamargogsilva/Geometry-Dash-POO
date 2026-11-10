@@ -1,8 +1,8 @@
 package geometrydash.packaging;
 
 import geometrydash.audio.AudioManager;
-import geometrydash.model.Phase;
-import geometrydash.model.PhaseLoader;
+import geometrydash.model.entity.Phase;
+import geometrydash.model.service.PhaseLoader;
 
 import javax.sound.sampled.AudioSystem;
 import java.net.URL;
