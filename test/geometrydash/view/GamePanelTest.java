@@ -1,10 +1,10 @@
 package geometrydash.view;
 
-import geometrydash.model.GameModel;
-import geometrydash.model.Phase;
-import geometrydash.model.PersonagemCor;
-import geometrydash.model.PersonagemExpressao;
-import geometrydash.model.PlayerProfile;
+import geometrydash.model.entity.PersonagemCor;
+import geometrydash.model.entity.PersonagemExpressao;
+import geometrydash.model.entity.Phase;
+import geometrydash.model.entity.PlayerProfile;
+import geometrydash.model.service.GameModel;
 
 import java.awt.Color;
 import java.awt.Graphics2D;

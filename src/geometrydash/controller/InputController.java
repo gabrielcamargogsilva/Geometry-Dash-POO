@@ -1,8 +1,8 @@
 package geometrydash.controller;
 
 import geometrydash.audio.AudioService;
-import geometrydash.model.GameModel;
-import geometrydash.model.GameState;
+import geometrydash.model.entity.GameState;
+import geometrydash.model.service.GameModel;
 import geometrydash.persistence.ProfileStore;
 import geometrydash.view.GamePanel;
 import geometrydash.view.component.MenuButton;

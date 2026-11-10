@@ -1,9 +1,9 @@
 package geometrydash.view;
 
-import geometrydash.model.GameModel;
-import geometrydash.model.GameState;
-import geometrydash.model.Obstacle;
-import geometrydash.model.PersonagemExpressao;
+import geometrydash.model.entity.GameState;
+import geometrydash.model.entity.Obstacle;
+import geometrydash.model.entity.PersonagemExpressao;
+import geometrydash.model.service.GameModel;
 import geometrydash.view.component.MenuButton;
 
 import javax.swing.JPanel;

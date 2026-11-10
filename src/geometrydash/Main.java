@@ -1,9 +1,9 @@
 package geometrydash;
 
 import geometrydash.controller.GameController;
-import geometrydash.model.GameModel;
-import geometrydash.model.PhaseLoader;
-import geometrydash.model.PlayerProfile;
+import geometrydash.model.entity.PlayerProfile;
+import geometrydash.model.service.GameModel;
+import geometrydash.model.service.PhaseLoader;
 import geometrydash.persistence.ProfileStore;
 import geometrydash.view.GamePanel;
 import geometrydash.view.GameWindow;

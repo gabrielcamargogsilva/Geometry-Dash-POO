@@ -1,8 +1,8 @@
 package geometrydash.persistence;
 
-import geometrydash.model.PersonagemCor;
-import geometrydash.model.PersonagemExpressao;
-import geometrydash.model.PlayerProfile;
+import geometrydash.model.entity.PersonagemCor;
+import geometrydash.model.entity.PersonagemExpressao;
+import geometrydash.model.entity.PlayerProfile;
 
 import java.io.IOException;
 import java.nio.file.Files;
