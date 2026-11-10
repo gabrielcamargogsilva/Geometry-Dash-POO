@@ -44,15 +44,8 @@ classDiagram
             +padrao(): PlayerProfile
         }
 
-        class PersonagemCor {
-            +getNomeExibicao(): String
-            +proxima(): PersonagemCor
-        }
-
-        class PersonagemExpressao {
-            +getNomeExibicao(): String
-            +proxima(): PersonagemExpressao
-        }
+        class PersonagemCor
+        class PersonagemExpressao
     }
 
     namespace Model_Repository {
@@ -63,6 +56,7 @@ classDiagram
         }
 
         class FilePlayerProfileRepository
+        class ProfileStore
     }
 
     namespace Model_Service {
@@ -88,15 +82,32 @@ classDiagram
         class PhaseLoader
     }
 
+    namespace App {
+        class Main
+    }
+
+    Main --> GameModel
+    Main --> PhaseService
+    Main --> PlayerProfileService
+    Main --> GameController
+    Main --> GamePanel
+    Main --> GameWindow
+
     GameWindow --> GamePanel
     GamePanel --> GameModel
+
     GameController --> GameModel
-    GameController --> GameService
+    GameController --> GamePanel
+    GameController --> AudioService
     GameController --> PlayerProfileService
     InputController --> GameModel
     InputController --> GamePanel
+    InputController --> AudioService
+    InputController --> PlayerProfileService
     GameLoop --> GameModel
     GameLoop --> GamePanel
+    GameLoop --> AudioService
+    GameLoop --> PlayerProfileService
 
     Obstacle <|-- BlockObstacle
     Obstacle <|-- SpikeObstacle
@@ -105,13 +116,17 @@ classDiagram
     PlayerProfile --> PersonagemExpressao
 
     PlayerProfileRepository <|.. FilePlayerProfileRepository
+    PlayerProfileRepository <|.. ProfileStore
     FilePlayerProfileRepository --> PlayerProfile
+    ProfileStore --> PlayerProfileRepository
     PlayerProfileService --> PlayerProfileRepository
     PlayerProfileService --> PlayerProfile
+
     GameModel --> Phase
     GameModel --> Obstacle
     GameModel --> GameState
     GameModel --> PlayerProfile
+
     GameService --> GameModel
     PhaseService --> PhaseLoader
     PhaseService --> Phase
@@ -119,4 +134,17 @@ classDiagram
     PhaseLoader --> Obstacle
     PhaseLoader --> BlockObstacle
     PhaseLoader --> SpikeObstacle
+
+    class AudioService {
+        <<interface>>
+        +iniciarMusica()
+        +pausarMusica()
+        +retomarMusica()
+        +pararMusica()
+        +tocarPulo()
+        +tocarColisao()
+        +tocarVitoria()
+        +tocarClique()
+        +close()
+    }
 ```
