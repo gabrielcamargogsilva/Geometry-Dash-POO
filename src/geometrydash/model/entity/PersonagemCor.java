@@ -1,4 +1,4 @@
-package geometrydash.model;
+package geometrydash.model.entity;
 
 public enum PersonagemCor {
     TURQUESA("Turquesa", 45, 218, 204),

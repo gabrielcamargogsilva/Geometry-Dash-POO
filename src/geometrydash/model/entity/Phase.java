@@ -1,4 +1,4 @@
-package geometrydash.model;
+package geometrydash.model.entity;
 
 import java.util.ArrayList;
 import java.util.List;

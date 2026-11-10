@@ -2,7 +2,7 @@ package geometrydash.controller;
 
 import geometrydash.audio.AudioManager;
 import geometrydash.audio.AudioService;
-import geometrydash.model.GameModel;
+import geometrydash.model.service.GameModel;
 import geometrydash.persistence.ProfileStore;
 import geometrydash.view.GamePanel;
 
