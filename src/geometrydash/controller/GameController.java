@@ -3,6 +3,7 @@ package geometrydash.controller;
 import geometrydash.audio.AudioManager;
 import geometrydash.audio.AudioService;
 import geometrydash.model.service.GameModel;
+import geometrydash.model.service.PlayerProfileService;
 import geometrydash.persistence.ProfileStore;
 import geometrydash.view.GamePanel;
 
@@ -20,24 +21,32 @@ public class GameController {
     private final GameModel model;
     private final GamePanel view;
     private final AudioService audio;
-    private final ProfileStore profileStore;
+    private final PlayerProfileService profileService;
     private final InputController inputController;
     private final GameLoop gameLoop;
 
-    public GameController(GameModel model, GamePanel view, ProfileStore profileStore) {
-        this(model, view, profileStore, new AudioManager());
+    public GameController(GameModel model, GamePanel view, PlayerProfileService profileService) {
+        this(model, view, profileService, new AudioManager());
     }
 
-    public GameController(GameModel model, GamePanel view, ProfileStore profileStore, AudioService audio) {
+    public GameController(GameModel model, GamePanel view, PlayerProfileService profileService, AudioService audio) {
         this.model = Objects.requireNonNull(model, "O modelo do jogo não pode ser nulo.");
         this.view = Objects.requireNonNull(view, "A view do jogo não pode ser nula.");
-        this.profileStore = Objects.requireNonNull(profileStore, "O armazenamento do perfil não pode ser nulo.");
+        this.profileService = Objects.requireNonNull(profileService, "O serviço de perfil não pode ser nulo.");
         this.audio = Objects.requireNonNull(audio, "O serviço de áudio não pode ser nulo.");
-        this.inputController = new InputController(this.model, this.view, this.audio, this.profileStore);
-        this.gameLoop = new GameLoop(this.model, this.view, this.audio, this.profileStore);
+        this.inputController = new InputController(this.model, this.view, this.audio, this.profileService);
+        this.gameLoop = new GameLoop(this.model, this.view, this.audio, this.profileService);
 
         inicializarControles();
         iniciarCiclo();
+    }
+
+    public GameController(GameModel model, GamePanel view, ProfileStore profileStore) {
+        this(model, view, new PlayerProfileService(profileStore), new AudioManager());
+    }
+
+    public GameController(GameModel model, GamePanel view, ProfileStore profileStore, AudioService audio) {
+        this(model, view, new PlayerProfileService(profileStore), audio);
     }
 
     private void inicializarControles() {
@@ -56,7 +65,7 @@ public class GameController {
     public void encerrar() {
         gameLoop.parar();
         try {
-            profileStore.salvar(model.getPerfil());
+            profileService.salvarPerfil(model.getPerfil());
         } catch (IOException e) {
             System.err.println("Não foi possível salvar o perfil do jogador: " + e.getMessage());
         }
