@@ -3,6 +3,7 @@ package geometrydash.controller;
 import geometrydash.audio.AudioService;
 import geometrydash.model.entity.GameState;
 import geometrydash.model.service.GameModel;
+import geometrydash.model.service.PlayerProfileService;
 import geometrydash.persistence.ProfileStore;
 import geometrydash.view.GamePanel;
 
@@ -39,19 +40,23 @@ public class GameLoop implements Runnable {
     private final GameModel model;
     private final GamePanel view;
     private final AudioService audio;
-    private final ProfileStore profileStore;
+    private final PlayerProfileService profileService;
 
     private volatile boolean rodando;
     private Thread threadLoop;
     private GameState estadoAnterior;
 
-    public GameLoop(GameModel model, GamePanel view, AudioService audio, ProfileStore profileStore) {
+    public GameLoop(GameModel model, GamePanel view, AudioService audio, PlayerProfileService profileService) {
         this.model = model;
         this.view = view;
         this.audio = audio;
-        this.profileStore = profileStore;
+        this.profileService = profileService;
         this.rodando = false;
         this.estadoAnterior = model.getEstadoAtual();
+    }
+
+    public GameLoop(GameModel model, GamePanel view, AudioService audio, ProfileStore profileStore) {
+        this(model, view, audio, new PlayerProfileService(profileStore));
     }
 
     /**
@@ -129,7 +134,7 @@ public class GameLoop implements Runnable {
 
     private void salvarPerfil() {
         try {
-            profileStore.salvar(model.getPerfil());
+            profileService.salvarPerfil(model.getPerfil());
         } catch (IOException e) {
             System.err.println("Não foi possível salvar o recorde do jogador: " + e.getMessage());
         }

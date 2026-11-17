@@ -2,9 +2,10 @@ package geometrydash;
 
 import geometrydash.controller.GameController;
 import geometrydash.model.entity.PlayerProfile;
+import geometrydash.model.repository.FilePlayerProfileRepository;
 import geometrydash.model.service.GameModel;
-import geometrydash.model.service.PhaseLoader;
-import geometrydash.persistence.ProfileStore;
+import geometrydash.model.service.PhaseService;
+import geometrydash.model.service.PlayerProfileService;
 import geometrydash.view.GamePanel;
 import geometrydash.view.GameWindow;
 
@@ -27,10 +28,12 @@ public class Main {
         SwingUtilities.invokeLater(() -> {
             // 1. Model: Estado puro do jogo
             GameModel model = new GameModel();
-            model.carregarFase(PhaseLoader.carregarRecurso("/phases/fase-1.json"));
-            ProfileStore profileStore = new ProfileStore();
+            PhaseService phaseService = new PhaseService();
+            model.carregarFase(phaseService.carregarRecurso("/phases/fase-1.json"));
+
+            PlayerProfileService profileService = new PlayerProfileService(new FilePlayerProfileRepository());
             try {
-                model.aplicarPerfil(profileStore.carregar());
+                model.aplicarPerfil(profileService.carregarPerfil());
             } catch (IOException e) {
                 System.err.println("Não foi possível carregar o perfil do jogador: " + e.getMessage());
                 model.aplicarPerfil(PlayerProfile.padrao());
@@ -40,7 +43,7 @@ public class Main {
             GamePanel panel = new GamePanel(model);
 
             // 3. Controller: Coordena eventos de entrada e regras
-            GameController controller = new GameController(model, panel, profileStore);
+            GameController controller = new GameController(model, panel, profileService);
 
             // 4. Janela: Agrega o painel e exibe a interface
             GameWindow janela = new GameWindow(panel);

@@ -2,6 +2,10 @@
 
 ```mermaid
 classDiagram
+    namespace App {
+        class Main
+    }
+
     namespace MVC_View {
         class GameWindow {
             -frame: JFrame
@@ -32,7 +36,7 @@ classDiagram
             -model: GameModel
             -view: GamePanel
             -audio: AudioService
-            -profileStore: ProfileStore
+            -profileService: PlayerProfileService
             -inputController: InputController
             -gameLoop: GameLoop
             +encerrar()
@@ -42,7 +46,7 @@ classDiagram
             -model: GameModel
             -view: GamePanel
             -audio: AudioService
-            -profileStore: ProfileStore
+            -profileService: PlayerProfileService
             -mouseAdapter: MouseAdapter
             +keyPressed(e: KeyEvent)
             +getMouseAdapter(): MouseAdapter
@@ -52,7 +56,7 @@ classDiagram
             -model: GameModel
             -view: GamePanel
             -audio: AudioService
-            -profileStore: ProfileStore
+            -profileService: PlayerProfileService
             -rodando: boolean
             +iniciar()
             +parar()
@@ -85,7 +89,7 @@ classDiagram
 
     namespace Persistence {
         class ProfileStore {
-            -repository: FilePlayerProfileRepository
+            -repository: PlayerProfileRepository
             +carregar(): PlayerProfile
             +salvar(perfil: PlayerProfile)
         }
@@ -237,11 +241,20 @@ classDiagram
         }
     }
 
+    %% ---- Ponto de Entrada (Main) ----
+    Main --> GameModel
+    Main --> PhaseService
+    Main --> PlayerProfileService
+    Main --> GameController
+    Main --> GamePanel
+    Main --> GameWindow
+
     %% ---- Herança e Implementação de Interface ----
     Obstacle <|-- BlockObstacle
     Obstacle <|-- SpikeObstacle
     AudioService <|.. AudioManager : implements
     PlayerProfileRepository <|.. FilePlayerProfileRepository : implements
+    PlayerProfileRepository <|.. ProfileStore : implements
     GameLoop ..|> Runnable : implements
     InputController --|> KeyAdapter : extends
     GamePanel --|> JPanel : extends
@@ -255,30 +268,30 @@ classDiagram
     GameController --> GameModel
     GameController --> GamePanel
     GameController --> AudioService
-    GameController --> ProfileStore
+    GameController --> PlayerProfileService
     GameController *-- InputController : cria
     GameController *-- GameLoop : cria
 
     InputController --> GameModel
     InputController --> GamePanel
     InputController --> AudioService
-    InputController --> ProfileStore
+    InputController --> PlayerProfileService
 
     GameLoop --> GameModel
     GameLoop --> GamePanel
     GameLoop --> AudioService
-    GameLoop --> ProfileStore
+    GameLoop --> PlayerProfileService
 
-    %% ---- Persistence ----
-    ProfileStore --> FilePlayerProfileRepository : delega
+    %% ---- Persistence e Repositório ----
+    ProfileStore o-- PlayerProfileRepository : delega
+    FilePlayerProfileRepository --> PlayerProfile
+    PlayerProfileService --> PlayerProfileRepository
+    PlayerProfileService --> PlayerProfile
 
     %% ---- Model Entity: associações ----
     Phase o-- Obstacle : contém lista
     PlayerProfile --> PersonagemCor
     PlayerProfile --> PersonagemExpressao
-
-    %% ---- Model Repository ----
-    FilePlayerProfileRepository --> PlayerProfile
 
     %% ---- Model Service: associações ----
     GameModel --> Phase
@@ -288,9 +301,9 @@ classDiagram
     GameModel --> PersonagemCor
     GameModel --> PersonagemExpressao
     GameService --> GameModel
-    PlayerProfileService --> PlayerProfileRepository
     PhaseService --> PhaseLoader
     PhaseLoader --> Phase
+    PhaseLoader --> Obstacle
     PhaseLoader --> BlockObstacle : cria
     PhaseLoader --> SpikeObstacle : cria
 ```

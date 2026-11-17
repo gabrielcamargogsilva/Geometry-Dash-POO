@@ -3,6 +3,7 @@ package geometrydash.controller;
 import geometrydash.audio.AudioService;
 import geometrydash.model.entity.GameState;
 import geometrydash.model.service.GameModel;
+import geometrydash.model.service.PlayerProfileService;
 import geometrydash.persistence.ProfileStore;
 import geometrydash.view.GamePanel;
 import geometrydash.view.component.MenuButton;
@@ -24,14 +25,14 @@ public class InputController extends KeyAdapter {
     private final GameModel model;
     private final GamePanel view;
     private final AudioService audio;
-    private final ProfileStore profileStore;
+    private final PlayerProfileService profileService;
     private final MouseAdapter mouseAdapter;
 
-    public InputController(GameModel model, GamePanel view, AudioService audio, ProfileStore profileStore) {
+    public InputController(GameModel model, GamePanel view, AudioService audio, PlayerProfileService profileService) {
         this.model = model;
         this.view = view;
         this.audio = audio;
-        this.profileStore = profileStore;
+        this.profileService = profileService;
         this.mouseAdapter = new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
@@ -43,6 +44,10 @@ public class InputController extends KeyAdapter {
                 tratarMovimentoMouse(e.getX(), e.getY());
             }
         };
+    }
+
+    public InputController(GameModel model, GamePanel view, AudioService audio, ProfileStore profileStore) {
+        this(model, view, audio, new PlayerProfileService(profileStore));
     }
 
     private void tratarCliqueMouse(int mouseX, int mouseY) {
@@ -153,7 +158,7 @@ public class InputController extends KeyAdapter {
 
     private void salvarPerfil() {
         try {
-            profileStore.salvar(model.getPerfil());
+            profileService.salvarPerfil(model.getPerfil());
         } catch (IOException e) {
             System.err.println("Não foi possível salvar a personalização: " + e.getMessage());
         }

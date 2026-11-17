@@ -1,7 +1,9 @@
 package geometrydash.controller;
 
 import geometrydash.audio.AudioService;
+import geometrydash.model.repository.FilePlayerProfileRepository;
 import geometrydash.model.service.GameModel;
+import geometrydash.model.service.PlayerProfileService;
 import geometrydash.persistence.ProfileStore;
 import geometrydash.view.GamePanel;
 
@@ -16,8 +18,8 @@ public class GameControllerTest {
         GameModel model = new GameModel();
         GamePanel view = new GamePanel(model);
         AudioFake audio = new AudioFake();
-        GameController controller = new GameController(
-                model, view, new ProfileStore(caminhoPerfil), audio);
+        PlayerProfileService perfilService = new PlayerProfileService(new FilePlayerProfileRepository(caminhoPerfil));
+        GameController controller = new GameController(model, view, perfilService, audio);
 
         try {
             MouseEvent clique = new MouseEvent(
